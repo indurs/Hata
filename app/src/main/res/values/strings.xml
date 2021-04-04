@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Hata</string>
+    <string name="api_key">AIzaSyBD3kDlTvpyHIF5sAIvbGVgikF2EBymzA4</string>
+    <string name="client_secret">dGVqvhzt1b79FNGH7QGyvacF</string>
+    <string name="client_id">606294249890-ieahov3odc6tn9gibprocn43psicgjp1.apps.googleusercontent.com</string>
+
+    <!-- Home Screen -->
+    <string name="add_task">Add Task</string>
+
+    <!-- Drawer -->
+    <string name="cd_open_navigation_drawer">Open navigation drawer</string>
+</resources>
