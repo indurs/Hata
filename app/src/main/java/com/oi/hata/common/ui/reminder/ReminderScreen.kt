@@ -44,11 +44,14 @@ fun Months(){
             Spacer(modifier = Modifier.height(4.dp))
             MonthsSurface()
         }*/
-
-        LayoutSample {
-            Text("Hello")
-            Text("Compose World")
-        }
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                LayoutContainer(modifier = Modifier.padding(16.dp))
+                {
+                    for (month in CalMonths.values().take(6)) {
+                        Month(month.name, Color.White)
+                    }
+                }
+            }
     }
 }
 
@@ -83,10 +86,6 @@ public fun Month(name: String, color: Color){
 
     MonthSurface( color = color,brush,modifier = mthSurfaceModifier) {
         Text(text = name)
-    }
-    
-    BoxWithConstraints() {
-        
     }
 
 }
@@ -218,6 +217,60 @@ fun LayoutSample(content: @Composable () -> Unit){
 }
 
 
+@Composable
+fun LayoutContainer(modifier: Modifier=Modifier, content: @Composable () -> Unit){
+
+    Layout(
+        modifier = modifier,
+        content = content
+    ) { measurables, constraints ->
+
+        var rowWidths = mutableListOf<Int>()
+        var rowWidth = 0
+        var maxRowElements = 0
+        var layoutHeight = 0
+        var layoutWidth = 0
+        var index = 1
+
+        val placeables = measurables.map { measurable ->
+            val placeable = measurable.measure(constraints)
+            if((rowWidth + placeable.width) < constraints.maxWidth){
+                rowWidth += placeable.width
+            }else{
+                rowWidths[index] = rowWidth
+                ++index
+                rowWidth = 0
+                rowWidth += placeable.width
+            }
+
+            placeable
+        }
+
+        layoutHeight = placeables[0].height * index
+        layoutWidth = rowWidths.maxOf { it }
+
+        maxRowElements =  layoutWidth/placeables[0].width
+
+        var xPosition = 0
+        var yPosition = 0
+        var rowElements = 0
+
+        layout(layoutWidth,layoutHeight){
+            placeables.forEach {
+                if(rowElements > maxRowElements){
+                    xPosition = 0
+                    yPosition += it.height
+                    rowElements = 0
+                }
+                it.placeRelative(xPosition,yPosition)
+                xPosition = xPosition+it.width
+                ++rowElements
+            }
+        }
+    }
+}
+
+
 private val CELL_SIZE = 48.dp
 
 enum class CalMonths {
@@ -238,11 +291,18 @@ private val monthColorMap = mapOf(CalMonths.Jan to jan,
     CalMonths.Dec to dec
                             )
 
-@Preview
+
+/*@Preview
 @Composable
 fun LayoutSampleTest(){
-    LayoutSample {
-        Text("Hello")
-        Text("Compose")
-    }
-}
+   Surface(){
+       Column(modifier = Modifier.padding(bottom = 8.dp)) {
+           LayoutContainer(modifier = Modifier.padding(16.dp))
+           {
+               for (month in CalMonths.values().take(6)) {
+                   Month(month.name, Color.White)
+               }
+           }
+       }
+   }
+}*/
