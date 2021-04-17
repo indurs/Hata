@@ -16,7 +16,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class
+MainActivity : ComponentActivity() {
 
     private val homeViewModel: HomeViewModel by viewModels()
 
@@ -158,10 +159,6 @@ class MainActivity : ComponentActivity() {
 
 
     */
-
-
-
-
 
 }
 

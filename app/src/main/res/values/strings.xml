@@ -9,4 +9,13 @@
 
     <!-- Drawer -->
     <string name="cd_open_navigation_drawer">Open navigation drawer</string>
+
+    <!-- Reminder Custom -->
+    <string name="EVERY_DAY">Every day in</string>
+    <string name="EVERY_MONTH">of every month</string>
+    <string name="ST">st</string>
+    <string name="ND">nd</string>
+    <string name="RD">rd</string>
+    <string name="TH">th</string>
+    <string name="OF">of</string>
 </resources>

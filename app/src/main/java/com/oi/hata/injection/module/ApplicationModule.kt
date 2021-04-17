@@ -8,6 +8,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.oi.hata.DevhataapiClient
+import com.oi.hata.common.reminder.data.local.HataDatabase
+import com.oi.hata.common.reminder.data.local.dao.ReminderDao
 import com.oi.hata.data.HataDataSource
 import com.oi.hata.data.remote.HataRemoteDataSource
 import dagger.Module
@@ -71,5 +73,15 @@ object ApplicationModule {
         return com.oi.hata.data.remote.HataRemoteDataSource(cognitoCachingCredentialsProvider,hataApiClient)
     }
 
+    @Singleton
+    @Provides
+    fun provideHataDatabase(@ApplicationContext context: Context): HataDatabase {
+        return HataDatabase.getInstance(context)
+    }
+
+    @Provides
+    fun provideReminderDao(hataDatabase: HataDatabase): ReminderDao {
+        return hataDatabase.reminderDao()
+    }
 
 }

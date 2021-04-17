@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.oi.hata.ui.theme.green100
 import com.oi.hata.ui.theme.green200
+import com.oi.hata.ui.theme.green50
 import com.oi.hata.ui.theme.purple500
 
 val crane_caption = Color.DarkGray
@@ -63,20 +64,21 @@ val calendarColors = lightColors(
     primary = green200,
     primaryVariant = green100,
     surface = Color.Black,
+
     secondary = purple500,
-    onSurface = Color.White
+    onSurface = green50
 )
 
 @Composable
 fun HataTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = hataColors, typography = craneTypography, shapes = HataShapes) {
+    MaterialTheme(colors = hataColors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }
 
 @Composable
 fun HataCalendarTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = calendarColors, typography = craneTypography, shapes = HataShapes) {
+    MaterialTheme(colors = calendarColors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }
