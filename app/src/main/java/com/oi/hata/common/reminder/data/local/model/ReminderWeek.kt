@@ -8,7 +8,7 @@ import androidx.room.*
     ForeignKey(
         entity = ReminderMaster::class,
         parentColumns = ["reminder_id"],
-        childColumns = ["reminder_id"],
+        childColumns = ["week_reminder_id"],
         onDelete = ForeignKey.CASCADE
     )
 ],

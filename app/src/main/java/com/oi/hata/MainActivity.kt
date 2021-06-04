@@ -8,7 +8,10 @@ import androidx.activity.viewModels
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltNavGraphViewModel
+import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.ui.LocalBackPressedDispatcher
 import com.oi.hata.ui.HataApp
 import com.oi.hata.ui.HomeViewModel

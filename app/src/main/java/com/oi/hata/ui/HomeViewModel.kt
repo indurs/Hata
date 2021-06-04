@@ -4,16 +4,17 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.*
+import com.oi.hata.common.reminder.data.local.datasource.HataReminderDatasource
+import com.oi.hata.common.reminder.data.local.model.ReminderMaster
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.annotation.concurrent.Immutable
 import javax.inject.Inject
 
+
 @HiltViewModel
-class HomeViewModel @Inject constructor(): ViewModel(){
+class HomeViewModel @Inject constructor(val hataReminderDatasource: HataReminderDatasource): ViewModel(){
 
     private val _homeUiState = MutableLiveData<HomeUiState>()
     val homeUiState: LiveData<HomeUiState> = _homeUiState
@@ -25,7 +26,6 @@ class HomeViewModel @Inject constructor(): ViewModel(){
         Log.d("HomeViewModel>>>>>>",hataScreens.title)
         currentTab = hataScreens
     }
-
 
 }
 

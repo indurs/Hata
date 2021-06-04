@@ -18,22 +18,24 @@
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Shapes
+import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.oi.hata.ui.theme.green100
-import com.oi.hata.ui.theme.green200
-import com.oi.hata.ui.theme.green50
-import com.oi.hata.ui.theme.purple500
+import com.oi.hata.ui.theme.*
+import hataColors
 
 val crane_caption = Color.DarkGray
 val crane_divider_color = Color.LightGray
-private val hata_pink = Color(0xFFc8004f)
+private val hata_yello = Color(0xFFf8e767)
 private val hata_white = Color.White
-private val hata_yello_600 = Color(0xFFeead07)
-private val hata_yello_700 = Color(0xFFee9b02)
-private val hata_yello_800 = Color(0xFFee8b00)
+private val hata_yello_600 = Color(0xFFffffff)
+private val hata_yello_700 = Color(0xFF505252)
+private val hata_yello_800 = Color(0xFFfcfbf4)
+
+private val blue_800 = Color(0xFF166ed8)
+private val blue_700 = Color(0xFF1680ea)
 
 
 //Month colors
@@ -52,11 +54,12 @@ val nov = Color(0xFF447019)
 val dec = Color(0xFF194470)
 
 
-val hataColors = lightColors(
+val hataColors = darkColors(
     primary = hata_yello_700,
-    secondary = hata_pink,
+    onPrimary = Color.Black,
+    secondary = hata_yello,
     surface = hata_yello_800,
-    onSurface = hata_pink,
+    onSurface = hata_yello,
     primaryVariant = hata_yello_600
 )
 
@@ -71,7 +74,7 @@ val calendarColors = lightColors(
 
 @Composable
 fun HataTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = hataColors, typography = hataTypography, shapes = HataShapes) {
+    MaterialTheme(colors = hatascreencolors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }
@@ -85,6 +88,6 @@ fun HataCalendarTheme(content: @Composable () -> Unit) {
 
 val HataShapes = Shapes(
     small = RoundedCornerShape(percent = 50),
-    medium = RoundedCornerShape(size = 8.dp),
-    large = RoundedCornerShape(topStart = 8.dp,topEnd = 8.dp,bottomStart = 0.dp,bottomEnd = 0.dp)
+    medium = RoundedCornerShape(size = 16.dp),
+    large = RoundedCornerShape(topStart = 8.dp,topEnd = 8.dp,bottomStart = 8.dp,bottomEnd = 8.dp)
 )

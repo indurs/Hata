@@ -2,6 +2,8 @@ package com.oi.hata.common.ui.reminder
 
 import HataCalendarTheme
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -18,11 +21,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.LastBaseline
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import apr
 import aug
+import com.oi.hata.R
+import com.oi.hata.common.reminder.data.local.model.ReminderMaster
 import com.oi.hata.common.reminder.ui.ReminderViewModel
+import com.oi.hata.common.ui.HataTaskReminderCustomButton
+import com.oi.hata.common.ui.HataTaskReminderOptionButton
+import com.oi.hata.common.ui.HataTaskSheetIconButton
+import com.oi.hata.common.ui.HataTimeButton
+import com.oi.hata.common.ui.components.HataDatePicker
+import com.oi.hata.common.util.ReminderUtil
 import dec
 import feb
 import jan
@@ -36,15 +55,21 @@ import sep
 
 
 @Composable
-fun CustomReminderPicker(reminderViewModel: ReminderViewModel){
+fun CustomReminderPicker(reminderViewModel: ReminderViewModel, onCompleteCustomReminder: () -> Unit ){
     //val reminderViewModel: ReminderViewModel = viewModel()
     //val viewState by reminderViewModel.reminderState.collectAsState()
-    Log.d("CustomReminderPicker >>", "CustomReminderPicker>>>>.")
+
     HataCalendarTheme {
         Surface(color = MaterialTheme.colors.primaryVariant, modifier = Modifier.fillMaxSize()){
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Button(modifier = Modifier.align(Alignment.End),onClick = { reminderViewModel.saveReminder() }) {
+                    Text(text = "SAVE")
+                }
+                Button(modifier = Modifier.align(Alignment.End),onClick = { onCompleteCustomReminder() }) {
+                    Text(text = "HOME")
+                }
 
-                Reminder(reminderViewModel.reminder)
+                When(reminderViewModel.reminder)
                 Spacer(modifier = Modifier.height(32.dp))
                 Header(name="Months",modifier = Modifier.padding(8.dp))
 
@@ -62,13 +87,24 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel){
         }
     }
 
+    Log.d("CustomReminderPicker >>","******************" + reminderViewModel.reminderTxt)
+
 }
 
 @Composable
-private fun Reminder(reminder: String){
-    Log.d("Reminder ", "Reminder>>>>>>>>>>")
+private fun Reminders(reminders: List<ReminderMaster>){
+    Column() {
+        for(item in reminders){
+            Text(text = item.alarmScreenVal)
+        }
+    }
+}
+
+@Composable
+private fun When(reminder: String){
+
     ReminderSurface(modifier = Modifier,color=Color.White) {
-        Log.d("ReminderSurface ", "Reminder>>>>>>>>>>")
+
         Text(text = reminder)
     }
 }
@@ -97,7 +133,6 @@ private fun Months(selectedMonths: List<String>, onMonthSelect: (String) -> Unit
 
 @Composable
 private fun Dates(selectedDates: List<Int>, onDateSelect: (Int) -> Unit){
-    Log.d("Dates ", ">>>>Dates >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
     Row( modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
         Log.d("Dates ", ">>>>Dates >>>>>>>>>>>>>>>>7777>>>>>>>>>>>>>>>>>>")
@@ -122,7 +157,7 @@ private fun Dates(selectedDates: List<Int>, onDateSelect: (Int) -> Unit){
 
 @Composable
 private fun Weeks(selectedWeeks: List<String>, onWeekSelect: (String) -> Unit){
-    Log.d("Weeks", ">>Weeks >>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
     Row( modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
 
         LayoutContainer(modifier = Modifier
@@ -132,7 +167,7 @@ private fun Weeks(selectedWeeks: List<String>, onWeekSelect: (String) -> Unit){
             )
             .padding(8.dp))
         {
-            for (week in CalWeeks.values()) {
+            for (week in ReminderUtil.WEEKNAMES.values()) {
                 if(week.name in selectedWeeks)
                     Week(week.name, Color.Green,onWeekSelect)
                 else
@@ -161,6 +196,7 @@ private fun WeekNums(selectedWeekNums: List<Int>, onWeekNumSelect: (Int) -> Unit
             }
         }
     }
+
 }
 
 @Composable
@@ -189,7 +225,7 @@ private fun Date(name: Int, color: Color, onDateSelect: (Int) -> Unit){
         listOf(Color.Gray, Color.Gray, Color.Gray),
 
         )
-    Log.d("DATE","DAte *********************************************")
+
     DateSurface( color = color,brush,modifier = dteSurfaceModifier) {
         Text(text = name.toString(), modifier = Modifier
             .clickable { onDateSelect(name) }
@@ -210,7 +246,7 @@ private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit){
 
     WeekSurface( color = color,brush,modifier = weekSurfaceModifier) {
         Text(text = name, modifier = Modifier
-            .clickable {onWeekSelect(name)  }
+            .clickable { onWeekSelect(name) }
             .padding(4.dp), style = MaterialTheme.typography.overline)
     }
 
@@ -370,6 +406,149 @@ fun LayoutContainer(modifier: Modifier=Modifier, content: @Composable () -> Unit
     }
 }
 
+@ExperimentalAnimationApi
+@Composable
+fun ReminderOptions(
+    onReminderOptSelected: (String) -> Unit,
+    reminderOptSelected: String,
+    onReminderSelected: (Boolean) -> Unit,
+    onPickaDate: (year: Int,month: Int, day: Int) -> Unit,
+    pickaDateSelected: Boolean,
+    onPickaDateSelected: (Boolean) -> Unit,
+    timeSelected: Boolean,
+    pickRemDate: String,
+    onClickReminder: () -> Unit,
+    reminder: String,
+    onReminderCustomClick: () -> Unit
+){
+
+    Column() {
+        Row(modifier = Modifier
+            .padding(8.dp)
+            .align(Alignment.End),
+            ) {
+
+            TaskSheetBar(onReminderSelected)
+        }
+
+        Row() {
+                AnimatedVisibility(visible = pickaDateSelected) {
+                    Dialog(onDismissRequest = {
+                        onPickaDateSelected(false)
+                    }) {
+                        HataDatePicker(onPickaDateSelected,onPickaDate)
+                    }
+                }
+
+            Row() {
+                AnimatedVisibility(visible = timeSelected) {
+                    Dialog(onDismissRequest = {
+
+                    }) {
+
+                    }
+                }
+            }
+            }
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center) {
+            HataTaskReminderOptionButton(
+                color = colorResource(id = R.color.everyday),
+                onReminderOptSelected = { onReminderOptSelected(it) },
+                reminderOptSelected = reminderOptSelected,
+                title = stringResource(id = R.string.everyday),
+
+            )
+            HataTaskReminderOptionButton(
+                color = colorResource(id = R.color.today),
+                onReminderOptSelected = { onReminderOptSelected(it) },
+                reminderOptSelected = reminderOptSelected,
+                title = stringResource(id = R.string.today),
+
+            )
+            HataTaskReminderOptionButton(
+                color = colorResource(id = R.color.tomorow),
+                onReminderOptSelected = { onReminderOptSelected(it) },
+                reminderOptSelected = reminderOptSelected,
+                title = stringResource(id = R.string.tomorrow),
+
+            )
+        }
+        Row(modifier = Modifier
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center) {
+
+            Column() {
+
+                HataTaskReminderCustomButton(
+                    color = colorResource(id = R.color.custom),
+                    onClickCustomReminder = onClickReminder,
+                    reminderOptSelected = reminderOptSelected,
+                    title = stringResource(id = R.string.custom),
+                    onReminderCustomClick = onReminderCustomClick
+                    )
+                AnimatedVisibility(visible = reminder.isNotEmpty()) {
+                    Text(
+                        text = reminder,
+                        style = MaterialTheme.typography.overline,
+                        fontSize = 12.sp,
+                        color = colorResource(id = R.color.custom).copy(alpha = 0.20f).compositeOver(Color.White),
+                        modifier = Modifier.padding(start = 28.dp)
+                    )
+                }
+            }
+
+            Column(
+
+            ) {
+                HataTaskReminderOptionButton(
+                    color = colorResource(id = R.color.pickdate),
+                    onReminderOptSelected = { onReminderOptSelected(it) },
+                    reminderOptSelected = reminderOptSelected,
+                    title = stringResource(id = R.string.pickadate),
+
+                    )
+                AnimatedVisibility(visible = pickRemDate.isNotEmpty()) {
+                    Text(
+                        text = pickRemDate,
+                        style = MaterialTheme.typography.overline,
+                        fontSize = 12.sp,
+                        color = colorResource(id = R.color.pickdate).copy(alpha = 0.20f).compositeOver(Color.White),
+                        modifier = Modifier.padding(start = 28.dp)
+                    )
+                }
+            }
+        }
+
+        Row(modifier = Modifier
+            .padding(start = 40.dp)){
+           HataTimeButton()
+        }
+    }
+}
+
+@Composable
+fun TaskSheetBar(
+    onReminderSelected: (Boolean) -> Unit
+){
+
+        HataTaskSheetIconButton(
+            onClick = { /*TODO*/ },
+            painter = painterResource(id = R.drawable.ic_baseline_undo_24),
+            contentDescription = stringResource(id = R.string.clear))
+        HataTaskSheetIconButton(
+            onClick = { onReminderSelected(false) },
+            painter = painterResource(id = R.drawable.ic_baseline_done_24),
+            contentDescription = stringResource(id = R.string.done))
+        HataTaskSheetIconButton(
+            onClick = { /*TODO*/ },
+            painter = painterResource(id = R.drawable.ic_baseline_close_24),
+            contentDescription = stringResource(id = R.string.close))
+
+}
 
 private val CELL_SIZE = 48.dp
 private val WEEK_CELL_SIZE = 48.dp

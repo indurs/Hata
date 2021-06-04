@@ -7,6 +7,20 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="grey800">#ff4d4c59</color>
+    <color name="sample">#1693fe</color>
+    <color name="task">#3ba2ff</color>
+    <color name="taskitem">#eff1f5</color>
+    <color name="bottombar">#2a2d39</color>
+    <color name="lightblue">#484b56</color>
+    <color name="today">#81f4b7</color>
+    <color name="tomorow">#f0b71a</color>
+    <color name="pickdate">#ffa38d</color>
+    <color name="custom">#b9dcff</color>
+    <color name="everyday">#9073ff</color>
+    <color name="time">#a9e2f7</color>
+
+    <color name="taskdivider">#ff0280ee</color>
     <!-- Months -->
     <color name="jan">#FF024eee</color>
     <color name="feb">#FFc6129f</color>
@@ -20,4 +34,7 @@
     <color name="oct">#ff7911aa</color>
     <color name="nov">#ff447019</color>
     <color name="dec">#ff194470</color>
+
+    <color name="immersive_sys_ui">#33000000</color>
+    <color name="nav_bar">@color/immersive_sys_ui</color>
 </resources>

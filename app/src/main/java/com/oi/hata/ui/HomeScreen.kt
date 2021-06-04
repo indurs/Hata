@@ -1,30 +1,49 @@
 package com.oi.hata.ui
 
+import android.text.Layout
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import com.oi.hata.R
+import com.oi.hata.common.reminder.data.local.model.ReminderMaster
+import com.oi.hata.common.reminder.ui.ReminderViewModel
+import com.oi.hata.common.ui.components.DateChip
+import com.oi.hata.common.ui.components.HataDatePicker
+import com.oi.hata.common.ui.components.ReminderItem
+import com.oi.hata.common.ui.reminder.ReminderOptions
+import com.oi.hata.common.util.ReminderUtil
 import kotlinx.coroutines.launch
-import kotlin.math.max
 
 enum class HataHomeScreens(val title: String) {
     Today("Today"),
@@ -42,143 +61,276 @@ enum class HataHomeBottomMenus(val title:String){
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(), homeViewModel: HomeViewModel){
+fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
+               homeViewModel: HomeViewModel,
+               reminderViewModel: ReminderViewModel,
+               onClickReminder: () -> Unit,
+                ){
 
-    val coroutineScope = rememberCoroutineScope()
+    val todayRemindersState = reminderViewModel.getTodaysReminders().collectAsState(initial = ArrayList())
+    //var (taskselected,onTaskSelected) = remember { mutableStateOf(false) }
+    var (diaryselected,onDiarySelected) = remember { mutableStateOf(false) }
+    var (travelselected,onTravelSelected) = remember { mutableStateOf(false) }
+    //var (reminderselected,onReminderSelected) = remember { mutableStateOf(false) }
 
-    val todayScreen = TabContent(HataHomeScreens.Today){
-        //Pass parameters to TodayScreen
-        TodayScreen()
-    }
-
-    val tomorrowScreen = TabContent(HataHomeScreens.Tomorrow){
-        //Pass parameters to TodayScreen
-        TomorrowScreen()
-    }
-
-    val tabsContent = listOf(todayScreen,tomorrowScreen)
-    //val (currentHomescreen, updateHomescreen) = remember { mutableStateOf(tabsContent.first().homescreen) }
+    Log.d("reminderOptSelected >>>>>>>>*","*****************>>>>>>>>>>"+reminderViewModel.reminderOptSelected)
 
    HomeScreen(
-        tabsContent = tabsContent,
-        tab = homeViewModel.currentTab,
-        onTabChange = { homeViewModel.onSelectTab(it) },
-        scaffoldState = scaffoldState,
-        nocontent = true
-    )
+       currenttab = homeViewModel.currentTab,
+       onTabChange = { homeViewModel.onSelectTab(it) },
+       scaffoldState = scaffoldState,
+       nocontent = true,
+       reminderTxt = reminderViewModel.reminderTxt,
+       reminder = reminderViewModel.reminder,
+       onReminderTxtChange = { reminderViewModel.onReminderTxtChange(it) },
+       onDueDateSelect = { year, month, day -> reminderViewModel.onDueDateSelect(year = year,month = month,day = day) },
+       onTimeSelect = {hour,minute,am -> reminderViewModel.onTimeSelect(hour,minute,am)},
+       onTimeSelected = reminderViewModel::onTimeSelected,
+       timeSelected = reminderViewModel.timeSelected,
+       onClickReminder = onClickReminder,
+       onSaveReminder = { reminderViewModel.saveReminder()},
+       dueDateSelected = reminderViewModel.dueDateSelected,
+       dueDate = reminderViewModel.reminderDueDate,
+       todayReminders = todayRemindersState.value,
+       taskselected = reminderViewModel.taskselected,
+       onTaskSelected = reminderViewModel::onTaskSelected,
+       diaryselected = diaryselected,
+       onDiarySelected = onDiarySelected,
+       travelselected = travelselected,
+       onTravelSelected = onTravelSelected,
+       reminderSelected = reminderViewModel.reminderSelected,
+       onReminderSelected = reminderViewModel::onReminderSelected,
+       onReminderOptSelected = reminderViewModel::onReminderOptionSelected ,
+       reminderOptSelected = reminderViewModel.reminderOptSelected,
+       onPickaDate = { year, month, day -> reminderViewModel.onPickaDateSelect(year = year,month = month, day = day) },
+       pickaDateSelected = reminderViewModel.pickDateSelected,
+       onPickaDateSelected = reminderViewModel::onPickaDateSelected,
+       pickRemDate = reminderViewModel.pickAdate,
+       onReminderCustomClick = reminderViewModel::onReminderCustomClick
 
-    //WithConstraintsComposable()
+    )
 
 }
 
 
 @ExperimentalAnimationApi
+
 @ExperimentalMaterialApi
 @Composable
-private fun HomeScreen(tabsContent: List<TabContent>,
-                        tab: HataHomeScreens,
-                        onTabChange: (HataHomeScreens) -> Unit,
-                        scaffoldState: ScaffoldState,
-                        nocontent: Boolean
+private fun HomeScreen(
+                       currenttab: HataHomeScreens,
+                       onTabChange: (HataHomeScreens) -> Unit,
+                       scaffoldState: ScaffoldState,
+                       nocontent: Boolean,
+                       reminderTxt: String,
+                       reminder: String,
+                       onReminderTxtChange: (String) -> Unit,
+                       onClickReminder: () -> Unit,
+                       onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
+                       onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
+                       timeSelected: Boolean,
+                       onTimeSelected: () -> Unit,
+                       onSaveReminder: () -> Unit,
+                       dueDateSelected: Boolean,
+                       dueDate: String,
+                       todayReminders: List<ReminderMaster>,
+                       taskselected: Boolean,
+                       onTaskSelected: (Boolean) -> Unit,
+                       diaryselected: Boolean,
+                       onDiarySelected: (Boolean) -> Unit,
+                       travelselected: Boolean,
+                       onTravelSelected: (Boolean) -> Unit,
+                       reminderSelected: Boolean,
+                       onReminderSelected: (Boolean) -> Unit,
+                       onReminderOptSelected: (String) -> Unit,
+                       reminderOptSelected: String,
+                       onPickaDate: (year: Int,month: Int, day: Int) -> Unit,
+                       pickaDateSelected: Boolean,
+                       onPickaDateSelected: (Boolean) -> Unit,
+                       pickRemDate: String,
+                       onReminderCustomClick: () -> Unit
+
 ) {
 
+    Log.d("HomeScreen", "HomeScreen>>>>>>>>3333>>>>>>>>>")
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         scaffoldState = scaffoldState,
         drawerContent = {},
         topBar = {
-            TopAppBar(
-                title = { Text("Interests") },
-                navigationIcon = {
-                    IconButton(onClick = { coroutineScope.launch { scaffoldState.drawerState.open() } }) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_jetnews_logo),
-                            contentDescription = stringResource(
-                                R.string.cd_open_navigation_drawer)
-                        )
-                    }
-                }
-            )
         },
-        bottomBar = { },
+        bottomBar = {
+            BottomBar(reminderTxt,reminder,onReminderTxtChange,onClickReminder,
+                onSaveReminder,onDueDateSelect,onTimeSelect,timeSelected,onTimeSelected,dueDateSelected,dueDate,
+                taskselected,onTaskSelected,diaryselected,onDiarySelected,travelselected,
+                onTravelSelected,reminderSelected,
+                onReminderSelected,onReminderOptSelected,reminderOptSelected,onPickaDate,
+                pickaDateSelected,onPickaDateSelected,pickRemDate,onReminderCustomClick
+                )
+                    },
         content= {
 
+            Column() {
+                Surface(modifier = Modifier.fillMaxSize()) {
 
-            Surface(modifier = Modifier.fillMaxSize(),color = Color.White) {
-                HomeTabContent(
-                    currentHomescreen = tab,
-                    onTabChange,
-                    tabsContent = tabsContent,
-                    scaffoldState = scaffoldState,
-                    nocontent = nocontent,
+                    HomeTabContent(
+                        currentTab = currenttab,
+                        onTabChange,
+                        tabs = HataHomeScreens.values().map{it.title},
+                        scaffoldState = scaffoldState,
+                        nocontent = nocontent,
+                        todayReminders = todayReminders,
+                        reminderSelected = reminderSelected,
+                        onReminderSelected = onReminderSelected
 
                     )
-                Column(verticalArrangement = Arrangement.Bottom) {
-                    BottomBar()
+
+                    /*Column(verticalArrangement = Arrangement.Bottom) {
+                        BottomBar(reminderTxt,onReminderTxtChange,onClickReminder,onSaveReminder,onDueDateSelect,onTimeSelect,dueDateSelected,dueDate)
+                    }*/
+
                 }
             }
-
         }
     )
 
 }
 
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-private fun HomeTabContent(currentHomescreen: HataHomeScreens,
+private fun HomeTabContent(currentTab: HataHomeScreens,
                            onTabChange: (HataHomeScreens) -> Unit,
-                           tabsContent: List<TabContent>,
+                           tabs: List<String>,
                            scaffoldState: ScaffoldState,
                            nocontent: Boolean,
+                           todayReminders: List<ReminderMaster>,
+                           reminderSelected: Boolean,
+                           onReminderSelected: (Boolean) -> Unit
                             ){
-    val selectedTabIndex = tabsContent.indexOfFirst { it.homescreen == currentHomescreen }
+    Log.d("HomeTabContent", "HomeScreen>>>>>>>>>>>>>>>>>")
+    val selectedTabIndex = currentTab.ordinal
+
     val coroutineScope = rememberCoroutineScope()
-    Box {
-        
-        ScrollableTabRow(
-            selectedTabIndex = selectedTabIndex,
-            indicator = {},
-            divider = {},
-            backgroundColor = Color.White
-                        ) {
-            tabsContent.forEachIndexed { index, tabContent ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick =  { onTabChange(tabContent.homescreen) },
-                    //text = { tabContent.homescreen.title }
-                ){
-                    ChoiceChipContent(
-                        text = tabContent.homescreen.title,
-                        selected = index == selectedTabIndex,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
-                    )
+    Column {
+
+
+                Row(modifier = Modifier
+                    .background(color = MaterialTheme.colors.surface)
+                    .fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
+                    Image(modifier = Modifier
+                        .size(48.dp)
+                        .padding(8.dp),painter = painterResource(R.drawable.cloudy), contentDescription = null)
+                }
+
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex,
+                indicator = {},
+                divider = {},
+
+
+                ) {
+                tabs.forEachIndexed { index, tab ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick =  { onTabChange(HataHomeScreens.values()[index]) },
+                        //text = { tabContent.homescreen.title }
+                    ){
+                        ChoiceChipContent(
+                            text = tab,
+                            selected = index == selectedTabIndex,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            Row() {
+                when(currentTab){
+                    HataHomeScreens.Today -> {
+                        TodayScreen(todayReminders)
+                    }
+                    HataHomeScreens.Tomorrow -> {
+                        TomorrowScreen()
+                    }
+                }
+            }
 
     }
 
 }
+
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
-private fun BottomBar(){
-    var (selected,onSelected) = remember { mutableStateOf(false) }
+private fun BottomBar(reminderTxt: String,
+                      reminder: String,
+                      onReminderTxtChange: (String) -> Unit,
+                      onClickReminder: () -> Unit,
+                      onSaveReminder: () -> Unit,
+                      onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
+                      onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
+                      timeSelected: Boolean,
+                      onTimeSelected: () -> Unit,
+                      dueDateSelected: Boolean,
+                      dueDate: String,
+                      taskselected: Boolean,
+                      onTaskSelected: (Boolean) -> Unit,
+                      diaryselected: Boolean,
+                      onDiarySelected: (Boolean) -> Unit,
+                      travelselected: Boolean,
+                      onTravelSelected: (Boolean) -> Unit,
+                      reminderSelected: Boolean,
+                      onReminderSelected: (Boolean) -> Unit,
+                      onReminderOptSelected: (String) -> Unit,
+                      reminderOptSelected: String,
+                      onPickaDate: (year: Int,month: Int, day: Int) -> Unit,
+                      pickaDateSelected: Boolean,
+                      onPickaDateSelected: (Boolean) -> Unit,
+                      pickRemDate: String,
+                      onReminderCustomClick: () -> Unit
+                    ){
 
-    Surface(modifier = Modifier
-        .fillMaxWidth(),
-        color = MaterialTheme.colors.primary.copy(alpha = 0.08f),
-        shape = RoundedCornerShape(topStart = 16.dp,topEnd = 16.dp),
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        color = MaterialTheme.colors.surface.copy(alpha = 0.90f).compositeOver(Color.White),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
     ) {
         Column() {
-            AnimatedVisibility(visible = selected) {
+            AnimatedVisibility(visible = reminderSelected && taskselected,) {
+
+                Row(
+                ) {
+                        ReminderOptions(
+                            onReminderOptSelected = onReminderOptSelected,
+                            reminderOptSelected = reminderOptSelected,
+                            onReminderSelected = onReminderSelected,
+                            onPickaDate = onPickaDate,
+                            pickaDateSelected = pickaDateSelected,
+                            onPickaDateSelected = onPickaDateSelected,
+                            pickRemDate = pickRemDate,
+                            onClickReminder = onClickReminder,
+                            reminder = reminder,
+                            onReminderCustomClick = onReminderCustomClick,
+                            timeSelected = timeSelected,
+
+                        )
+                }
+            }
+
+            AnimatedVisibility(visible = taskselected,
+
+                ) {
                 Row {
-                    TaskSheet()
+                    TaskSheet(reminderTxt,onReminderTxtChange,onClickReminder,
+                        onDueDateSelect,onTimeSelect,onSaveReminder,dueDateSelected,dueDate,reminderSelected,onReminderSelected,
+                        taskselected,onTaskSelected)
                 }
             }
             Row(modifier = Modifier
@@ -187,13 +339,11 @@ private fun BottomBar(){
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment =  Alignment.CenterVertically) {
 
-                ChipContent(text = "Task", selected,onSelected = {  onSelected(it) } )
+                TaskChip(text = "Task", taskselected,onTaskSelected = {  onTaskSelected(it) },reminderSelected,onReminderSelected = { onReminderSelected(it) } )
                 Spacer(modifier = Modifier.width(20.dp))
-                ChipContent(text = "Diary", selected,onSelected = {  onSelected(it) } )
+                ChipContent(text = "Diary", diaryselected,onSelected = {  onDiarySelected(it) } )
                 Spacer(modifier = Modifier.width(20.dp))
-                ChipContent(text = "Travel", selected,onSelected = {  onSelected(it) } )
-
-
+                ChipContent(text = "Travel", travelselected,onSelected = {  onTravelSelected(it) } )
             }
 
         }
@@ -202,19 +352,49 @@ private fun BottomBar(){
 }
 
 
-
 @Composable
-private fun TodayScreen(){
+private fun TodayScreen(todayreminders: List<ReminderMaster>){
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = "Tasks",
+            style = MaterialTheme.typography.subtitle1,
+            color = colorResource(id = R.color.taskdivider)
+        )
+        Surface(color = MaterialTheme.colors.surface.copy(alpha = 0.90f).compositeOver(Color.White),elevation = 2.dp,modifier = Modifier.padding(top = 4.dp)) {
 
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
 
-        Spacer(modifier = Modifier.height(50.dp))
-        Text("Today......")
+                ,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                todayreminders.mapIndexed { index, reminderMaster ->
+                    item{
+                        Column() {
+                            Row(horizontalArrangement = Arrangement.Start, modifier = Modifier
+                                .fillMaxWidth()
 
+                            ){
+
+                                Text(text = reminderMaster.reminderText,modifier = Modifier.padding(16.dp),style = MaterialTheme.typography.body2,color = Color.White)
+
+                            }
+
+                        }
+                    }
+                    if(index < (todayreminders.size - 1)){
+                        item{
+                            Divider(color = colorResource(id = R.color.taskdivider)
+                                , thickness = 0.8.dp, modifier = Modifier.padding(start = 8.dp,end = 8.dp))
+
+                        }
+                    }
+
+                }
+            }
+        }
     }
 
 }
@@ -236,26 +416,25 @@ private fun TomorrowScreen(){
 }
 
 @Composable
+
 private fun ChoiceChipContent(
     text: String,
     selected: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
 ) {
     Surface(
         color = when {
             selected -> MaterialTheme.colors.primary.copy(alpha = 0.08f)
-            else -> MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-        },
-        contentColor = when {
-            selected -> MaterialTheme.colors.primary
-            else -> MaterialTheme.colors.onSurface
+            else -> MaterialTheme.colors.surface.copy(alpha = 0.30f)
         },
         shape = MaterialTheme.shapes.small,
         modifier = modifier,
+
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.body2,
+            color = Color.White,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
@@ -272,8 +451,8 @@ private fun ChipContent(
     val coroutineScope = rememberCoroutineScope()
     Surface(
         color = when {
-            selected -> MaterialTheme.colors.primary.copy(alpha = 0.08f)
-            else -> MaterialTheme.colors.onSecondary.copy(alpha = 0.12f)
+            selected -> MaterialTheme.colors.surface.copy(alpha = 0.90f).compositeOver(Color.White)
+            else -> MaterialTheme.colors.surface.copy(alpha = 0.50f)
         },
         contentColor = when {
             selected -> MaterialTheme.colors.primary
@@ -290,31 +469,196 @@ private fun ChipContent(
 
         Text(
             text = text,
+            color= when { selected -> colorResource(id = R.color.taskdivider)
+                            else -> Color.White
+                 },
             style = MaterialTheme.typography.body2,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
 }
 
-
+@ExperimentalMaterialApi
 @Composable
-private fun TaskSheet(){
-    Surface(modifier = Modifier
-        .fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 8.dp,topEnd = 8.dp),
-        color = MaterialTheme.colors.surface.copy(alpha = 0.12f)
+private fun TaskChip(
+    text: String,
+    taskselected: Boolean,
+    onTaskSelected: (Boolean) -> Unit,
+    reminderSelected: Boolean,
+    onReminderSelected: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val coroutineScope = rememberCoroutineScope()
+    Surface(
+        color = when {
+            taskselected -> MaterialTheme.colors.surface.copy(alpha = 0.90f).compositeOver(Color.White)
+            else -> MaterialTheme.colors.surface.copy(alpha = 0.50f)
+        },
+        contentColor = when {
+            taskselected -> MaterialTheme.colors.primary
+            else -> MaterialTheme.colors.onSurface
+        },
+        shape = MaterialTheme.shapes.small,
+        modifier = modifier.clickable {
+            if(taskselected) {
+                onTaskSelected(false)
+                onReminderSelected(false)
+            }
+            else
+                onTaskSelected(true)
+        },
     ) {
-        Column() {
-            Row() {
-                Text("Reminder Text")
-            }
-            Row() {
-                Text("Reminder ")
-            }
-        }
+
+        Text(
+            text = text,
+            color= when { taskselected -> colorResource(id = R.color.taskdivider)
+                else -> Color.White
+            },
+            style = MaterialTheme.typography.body2,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
     }
 }
 
+@ExperimentalAnimationApi
+@Composable
+private fun TaskSheet(reminderTxt: String,
+                      onReminderTxtChange: (String) -> Unit,
+                      onClickReminder: () -> Unit,
+                      onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
+                      onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
+                      onSaveReminder: () -> Unit,
+                      dueDateSelected: Boolean,
+                      dueDate: String,
+                      reminderSelected: Boolean,
+                      onReminderSelected: (Boolean) -> Unit,
+                      taskselected: Boolean,
+                      onTaskSelected: (Boolean) -> Unit,
+                    ){
+
+    var (datePickerSelected,onDatePickerSelected) = remember { mutableStateOf(false) }
+
+    Surface(modifier = Modifier
+        .fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 4.dp,topEnd = 4.dp),
+        color = MaterialTheme.colors.surface.copy(alpha = 0.12f),
+    ) {
+        Column(modifier = Modifier.padding(start=24.dp)) {
+            Row() {
+                AnimatedVisibility(visible = datePickerSelected) {
+                    Dialog(onDismissRequest = {
+                        onDatePickerSelected(false)
+                    }) {
+                        HataDatePicker(onDatePickerSelected,onDueDateSelect)
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = !reminderSelected) {
+                Row(){
+                    OutlinedTextField(
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black)
+                        ),
+                        value = reminderTxt,
+                        onValueChange = { onReminderTxtChange(it) },
+                        enabled =  when { (reminderSelected) -> false
+                            else -> true
+                        }
+
+                    )
+                    IconButton(
+                        enabled =  when { (reminderSelected) -> false
+                            else -> true
+                        },
+                        onClick = { onSaveReminder() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_save),
+                            tint = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(start = 16.dp),
+
+                            )
+                    }
+                }
+            }
+
+            Row(){
+                Column() {
+                    IconButton( enabled =  when { (reminderSelected) -> false
+                        else -> true
+                    },
+                        onClick = {
+                        if(datePickerSelected)
+                            onDatePickerSelected(false)
+                        else
+                            onDatePickerSelected(true)
+
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_pick_date),
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+
+                        )
+
+                    }
+                    AnimatedVisibility(visible = dueDateSelected) {
+                        DateChip(text = dueDate)
+                    }
+                }
+                
+                IconButton( enabled =  when { (reminderSelected) -> false
+                                    else -> true
+                                },
+                    onClick = {  }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_action_tag),
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                    )
+                }
+
+                /*IconButton(onClick = { onClickReminder() }) {
+                    Icon(imageVector = Icons.Filled.Notifications,
+                        tint = colorResource(id = R.color.taskdivider),
+                        contentDescription = "Reminder")
+                }*/
+
+                IconButton(onClick = {
+                    if(reminderSelected) {
+                        onReminderSelected(false)
+                    }
+                    else {
+                        onReminderSelected(true)
+                    }
+                }) {
+                    Icon(imageVector = Icons.Filled.Notifications,
+                        tint = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
+                        contentDescription = "Reminder")
+                }
+            }
+        }
+
+    }
+}
+
+
+
+/*@Composable
+fun DatePicker(){
+    AndroidView(factory = { context ->
+        MaterialDatePicker.Builder.datePicker().build().apply { addOnPositiveButtonClickListener { println("DAte>>>>>>>>") } }.requireView()
+    }) {
+
+    }
+
+}*/
 
 /*@Preview
 @Composable
