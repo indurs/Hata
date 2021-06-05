@@ -210,7 +210,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                            reminderSelected: Boolean,
                            onReminderSelected: (Boolean) -> Unit
                             ){
-    
+
     val selectedTabIndex = currentTab.ordinal
 
     val coroutineScope = rememberCoroutineScope()
