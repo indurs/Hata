@@ -85,8 +85,8 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
        onReminderTxtChange = { reminderViewModel.onReminderTxtChange(it) },
        onDueDateSelect = { year, month, day -> reminderViewModel.onDueDateSelect(year = year,month = month,day = day) },
        onTimeSelect = {hour,minute,am -> reminderViewModel.onTimeSelect(hour,minute,am)},
+       reminderTime = reminderViewModel.reminderTime,
        onTimeSelected = reminderViewModel::onTimeSelected,
-       timeSelected = reminderViewModel.timeSelected,
        onClickReminder = onClickReminder,
        onSaveReminder = { reminderViewModel.saveReminder()},
        dueDateSelected = reminderViewModel.dueDateSelected,
@@ -94,7 +94,6 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
        todayReminders = todayRemindersState.value,
        taskselected = reminderViewModel.taskselected,
        onTaskSelected = reminderViewModel::onTaskSelected,
-       diaryselected = diaryselected,
        onDiarySelected = onDiarySelected,
        travelselected = travelselected,
        onTravelSelected = onTravelSelected,
@@ -106,8 +105,8 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
        pickaDateSelected = reminderViewModel.pickDateSelected,
        onPickaDateSelected = reminderViewModel::onPickaDateSelected,
        pickRemDate = reminderViewModel.pickAdate,
-       onReminderCustomClick = reminderViewModel::onReminderCustomClick
-
+       onReminderCustomClick = reminderViewModel::onReminderCustomClick,
+       timeSelected = reminderViewModel.reminderTimeSelected
     )
 
 }
@@ -128,15 +127,14 @@ private fun HomeScreen(
                        onClickReminder: () -> Unit,
                        onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
                        onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
-                       timeSelected: Boolean,
-                       onTimeSelected: () -> Unit,
+                       onTimeSelected: (Boolean) -> Unit,
+                       reminderTime: String,
                        onSaveReminder: () -> Unit,
                        dueDateSelected: Boolean,
                        dueDate: String,
                        todayReminders: List<ReminderMaster>,
                        taskselected: Boolean,
                        onTaskSelected: (Boolean) -> Unit,
-                       diaryselected: Boolean,
                        onDiarySelected: (Boolean) -> Unit,
                        travelselected: Boolean,
                        onTravelSelected: (Boolean) -> Unit,
@@ -148,11 +146,12 @@ private fun HomeScreen(
                        pickaDateSelected: Boolean,
                        onPickaDateSelected: (Boolean) -> Unit,
                        pickRemDate: String,
-                       onReminderCustomClick: () -> Unit
+                       onReminderCustomClick: () -> Unit,
+                       timeSelected: Boolean
 
 ) {
 
-    Log.d("HomeScreen", "HomeScreen>>>>>>>>3333>>>>>>>>>")
+
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -162,8 +161,9 @@ private fun HomeScreen(
         },
         bottomBar = {
             BottomBar(reminderTxt,reminder,onReminderTxtChange,onClickReminder,
-                onSaveReminder,onDueDateSelect,onTimeSelect,timeSelected,onTimeSelected,dueDateSelected,dueDate,
-                taskselected,onTaskSelected,diaryselected,onDiarySelected,travelselected,
+                onSaveReminder,onDueDateSelect,onTimeSelect,reminderTime,onTimeSelected,
+                timeSelected,dueDateSelected,dueDate,
+                taskselected,onTaskSelected,onDiarySelected,travelselected,
                 onTravelSelected,reminderSelected,
                 onReminderSelected,onReminderOptSelected,reminderOptSelected,onPickaDate,
                 pickaDateSelected,onPickaDateSelected,pickRemDate,onReminderCustomClick
@@ -210,7 +210,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                            reminderSelected: Boolean,
                            onReminderSelected: (Boolean) -> Unit
                             ){
-    Log.d("HomeTabContent", "HomeScreen>>>>>>>>>>>>>>>>>")
+    
     val selectedTabIndex = currentTab.ordinal
 
     val coroutineScope = rememberCoroutineScope()
@@ -274,13 +274,13 @@ private fun BottomBar(reminderTxt: String,
                       onSaveReminder: () -> Unit,
                       onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
                       onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
+                      reminderTime: String,
+                      onTimeSelected: (Boolean) -> Unit,
                       timeSelected: Boolean,
-                      onTimeSelected: () -> Unit,
                       dueDateSelected: Boolean,
                       dueDate: String,
                       taskselected: Boolean,
                       onTaskSelected: (Boolean) -> Unit,
-                      diaryselected: Boolean,
                       onDiarySelected: (Boolean) -> Unit,
                       travelselected: Boolean,
                       onTravelSelected: (Boolean) -> Unit,
@@ -318,8 +318,10 @@ private fun BottomBar(reminderTxt: String,
                             onClickReminder = onClickReminder,
                             reminder = reminder,
                             onReminderCustomClick = onReminderCustomClick,
+                            reminderTime = reminderTime,
+                            onTimeSelected = onTimeSelected,
                             timeSelected = timeSelected,
-
+                            onTimeSelect = onTimeSelect
                         )
                 }
             }
@@ -341,7 +343,7 @@ private fun BottomBar(reminderTxt: String,
 
                 TaskChip(text = "Task", taskselected,onTaskSelected = {  onTaskSelected(it) },reminderSelected,onReminderSelected = { onReminderSelected(it) } )
                 Spacer(modifier = Modifier.width(20.dp))
-                ChipContent(text = "Diary", diaryselected,onSelected = {  onDiarySelected(it) } )
+                ChipContent(text = "Diary", taskselected,onSelected = {  onDiarySelected(it) } )
                 Spacer(modifier = Modifier.width(20.dp))
                 ChipContent(text = "Travel", travelselected,onSelected = {  onTravelSelected(it) } )
             }
@@ -665,6 +667,15 @@ fun DatePicker(){
 fun SamplePreview(){
     SampleColumn()
 }*/
+
+data class TaskContentUpdates(
+    val onReminderTxtChange: (String) -> Unit,
+    val onClickReminder: () -> Unit,
+    val onDueDateSelect: (year: Int,month: Int,day:Int) -> Unit,
+    val onTimeSelect: (hour:Int,minute:Int,am:Boolean) -> Unit,
+    val onTimeSelected: (Boolean) -> Unit,
+)
+
 
 
 class TabContent(val homescreen: HataHomeScreens, val content: @Composable () -> Unit)
