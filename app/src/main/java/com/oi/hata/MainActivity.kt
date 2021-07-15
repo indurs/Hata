@@ -22,7 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class
 MainActivity : ComponentActivity() {
 
-    private val homeViewModel: HomeViewModel by viewModels()
+    //private val homeViewModel: HomeViewModel by viewModels()
 
     @ExperimentalAnimationApi
     @ExperimentalMaterialApi
@@ -34,7 +34,8 @@ MainActivity : ComponentActivity() {
 
         setContent {
             HataTheme {
-                HataApp(homeViewModel = homeViewModel)
+                //HataApp(homeViewModel = homeViewModel)
+                HataApp()
             }
         }
     }

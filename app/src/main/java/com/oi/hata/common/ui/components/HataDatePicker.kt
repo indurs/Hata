@@ -5,10 +5,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.DatePicker
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -29,13 +26,14 @@ fun HataDatePicker(onDateSelected: (Boolean) -> Unit,onDateSelect : (year: Int,m
 
             var calendar = GregorianCalendar()
 
-            DatePicker(context).apply {  init(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH), calendar.get(
+            DatePicker(context).apply {
+                init(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH), calendar.get(
                 Calendar.DAY_OF_MONTH)) { view, year, month, day,   ->
                 onDateSelect(year,month+1,day)
                 onDateSelected(false)
 
             } }
-        }, )
+        },)
 
     }
 

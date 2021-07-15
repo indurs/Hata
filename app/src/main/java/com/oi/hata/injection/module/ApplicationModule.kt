@@ -12,6 +12,8 @@ import com.oi.hata.common.reminder.data.local.HataDatabase
 import com.oi.hata.common.reminder.data.local.dao.ReminderDao
 import com.oi.hata.data.HataDataSource
 import com.oi.hata.data.remote.HataRemoteDataSource
+import com.oi.hata.task.data.dao.GroupDao
+import com.oi.hata.task.data.dao.TaskDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -82,6 +84,16 @@ object ApplicationModule {
     @Provides
     fun provideReminderDao(hataDatabase: HataDatabase): ReminderDao {
         return hataDatabase.reminderDao()
+    }
+
+    @Provides
+    fun provideTaskDao(hataDatabase: HataDatabase): TaskDao {
+        return hataDatabase.taskDao()
+    }
+
+    @Provides
+    fun provideGroupDao(hataDatabase: HataDatabase): GroupDao {
+        return hataDatabase.groupDao()
     }
 
 }

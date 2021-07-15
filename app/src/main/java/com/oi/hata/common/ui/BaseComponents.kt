@@ -26,12 +26,14 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.statusBarsPadding
 import com.oi.hata.R
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.ui.theme.ButtonCircleShape
 
+@ExperimentalMaterialApi
 @Composable
 fun CircleButton(
     onClick: () -> Unit,
@@ -53,6 +55,13 @@ fun CircleButton(
                 interactionSource = interactionSource,
                 indication = null
             ),
+            onClick = {
+                onClick()
+            },
+            enabled = enabled,
+            role = Role.Button,
+            interactionSource = interactionSource,
+            indication = null,
             shape = shape,
             color = Color.White.copy(alpha = 0.50f).compositeOver(Color.Black),
             content = content
@@ -82,6 +91,7 @@ fun HataTaskSheetIconButton(
     }
 }
 
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
 fun HataTaskReminderOptionButton(
@@ -89,17 +99,20 @@ fun HataTaskReminderOptionButton(
     onReminderOptSelected: (String) -> Unit,
     reminderOptSelected: String,
     title:String,
-
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 
 ){
+    println("HataTaskReminderOptionButton*****************************"+reminderOptSelected)
     Surface(
         shape = MaterialTheme.shapes.small,
         color = color,
+        onClick = { onReminderOptSelected(title) },
+        role = Role.Button,
+        interactionSource = interactionSource,
+        indication = null,
         modifier = Modifier
             .padding(8.dp)
-            .clickable {
-                    onReminderOptSelected(title)
-            }) {
+            ) {
         Row(horizontalArrangement = Arrangement.Center) {
             AnimatedVisibility(
                 visible = reminderOptSelected.equals(title,true)
@@ -124,24 +137,26 @@ fun HataTaskReminderOptionButton(
     }
 }
 
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
 fun HataTaskReminderCustomButton(
     color: Color,
-    onClickCustomReminder: () -> Unit,
+    onCustomReminderSelect: () -> Unit,
     reminderOptSelected: String,
     title:String,
-    onReminderCustomClick: () -> Unit
+    onCustomReminderInitialize: () -> Unit
     ){
     Surface(
         shape = MaterialTheme.shapes.small,
         color = color,
+        onClick = {
+            onCustomReminderInitialize()
+            onCustomReminderSelect()
+        },
         modifier = Modifier
             .padding(8.dp)
-            .clickable {
-                onReminderCustomClick()
-                onClickCustomReminder()
-            }) {
+             ) {
         Row(horizontalArrangement = Arrangement.Center) {
             AnimatedVisibility(
                 visible = reminderOptSelected.equals(title,true)
@@ -168,6 +183,7 @@ fun HataTaskReminderCustomButton(
 
 
 
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
 fun HataTaskReminderPickADate(
@@ -180,9 +196,10 @@ fun HataTaskReminderPickADate(
     Surface(
         shape = MaterialTheme.shapes.small,
         color = color,
+        onClick = { onReminderOptSelected(title) },
         modifier = Modifier
             .padding(8.dp)
-            .clickable { onReminderOptSelected(title) }) {
+            ) {
         Row(horizontalArrangement = Arrangement.Center) {
             AnimatedVisibility(
                 visible = reminderOptSelected.equals(title,true)
@@ -207,12 +224,23 @@ fun HataTaskReminderPickADate(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
-fun HataTimeButton(){
+fun HataTimeButton(
+    timeSelected: Boolean,
+    onTimeSelected: (Boolean) -> Unit,
+    reminderTime: String
+){
     Surface(
         shape = MaterialTheme.shapes.small,
         color = Color.Black.copy(alpha = 0.70f).compositeOver(Color.White),
-        modifier = Modifier.padding(top = 16.dp,start=8.dp,bottom=16.dp)) {
+        modifier = Modifier.padding(top = 16.dp,start=8.dp,bottom=16.dp),
+        onClick = { if(timeSelected)
+            onTimeSelected(false)
+        else
+            onTimeSelected(true) }
+    )
+    {
         Row(
             modifier = Modifier.padding(start = 8.dp,end = 8.dp,)) {
             Image(
@@ -222,11 +250,41 @@ fun HataTimeButton(){
                     .align(Alignment.CenterVertically)
                     .size(16.dp)
             )
-            Text("Time",
+            Text(text = reminderTime,
                 modifier = Modifier.padding(4.dp),
                 color = Color.White,style = MaterialTheme.typography.caption)
         }
     }
+}
+
+@Composable
+fun Dot(
+    color:Color,
+    modifier: Modifier
+){
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        modifier = modifier,
+        color = color.copy(alpha = 0.20f).compositeOver(Color.White),
+        elevation = 2.dp
+    ) {
+
+    }
+}
+
+@Composable
+fun HataDivider(
+    modifier: Modifier = Modifier,
+    color: Color,
+    thickness: Dp = 1.dp,
+    startIndent: Dp = 0.dp
+) {
+    Divider(
+        modifier = modifier,
+        color = color,
+        thickness = thickness,
+        startIndent = startIndent
+    )
 }
 
 @Composable

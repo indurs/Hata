@@ -22,6 +22,8 @@
     <string name="TH">th</string>
     <string name="OF">of</string>
 
+    <!-- headers -->
+    <string name="months">Months</string>
     <!-- Task Sheet -->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
@@ -29,5 +31,6 @@
     <string name="custom">Custom</string>
     <string name="everyday">EveryDay</string>
 
-    <string name="Reminder">Reminder</string>
+    <string name="reminder">Reminder</string>
+    <string name="emptyreminder">Select options from Months,Dates,Weeks,WeekNums below</string>
 </resources>

@@ -22,15 +22,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.oi.hata.R
 
-private val light = Font(R.font.heebo_light,FontWeight.W300)
-private val regular = Font(R.font.heebo_regular, FontWeight.W400)
-private val medium = Font(R.font.heebo_medium, FontWeight.W500)
-private val semibold = Font(R.font.heebo_semibold, FontWeight.W600)
+private val light = Font(R.font.montserrat_light,FontWeight.W300)
+private val regular = Font(R.font.montserrat_regular, FontWeight.W400)
+private val medium = Font(R.font.montserrat_medium, FontWeight.W500)
+private val semibold = Font(R.font.montserrat_semibold, FontWeight.W600)
+
+private val Montserrat = FontFamily(
+    Font(R.font.montserrat_light, FontWeight.Light),
+    Font(R.font.montserrat_regular, FontWeight.Normal),
+    Font(R.font.montserrat_medium, FontWeight.Medium),
+    Font(R.font.montserrat_semibold, FontWeight.SemiBold)
+)
+
+private val RobotoCondensed = FontFamily(
+    Font(R.font.robotocondensed_regular),
+    Font(R.font.robotocondensed_light, FontWeight.Light),
+    Font(R.font.robotocondensed_bold, FontWeight.Bold)
+)
 
 private val hatafontFamily = FontFamily(fonts = listOf(light, regular, medium, semibold))
 
 val captionTextStyle = TextStyle(
-    fontFamily = hatafontFamily,
+    fontFamily = RobotoCondensed,
     fontWeight = FontWeight.W400,
     fontSize = 16.sp
 )
@@ -82,9 +95,11 @@ val hataTypography = Typography(
         fontSize = 16.sp
     ),
     body2 = TextStyle(
-        fontFamily = hatafontFamily,
-        fontWeight = FontWeight.W400,
-        fontSize = 14.sp
+        fontFamily = Montserrat,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
     ),
     button = TextStyle(
         fontFamily = hatafontFamily,

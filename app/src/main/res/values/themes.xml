@@ -23,19 +23,33 @@
 
     <style name="Theme.Hata" parent="android:Theme.Material.NoActionBar">
         <item name="android:colorPrimary">#ffffff</item>
-        <item name="android:colorAccent">#c8004f</item>
+        <item name="android:colorAccent">#194ccb</item>
         <item name="android:statusBarColor">@color/immersive_sys_ui</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:datePickerStyle">@style/date_picker_theme</item>
+        <item name="android:timePickerStyle">@style/timePickerstyle</item>
     </style>
 
     <style name="date_picker_theme" parent="@android:style/Widget.DatePicker">
-        <item name="android:colorBackground">@color/black</item>
         <item name="android:datePickerMode">calendar</item>
-        <item name="android:headerBackground">@color/teal_200</item>
-        <item name="android:background">@color/dec</item>
+        <item name="android:headerBackground">@color/numbercolor</item>
+        <item name="android:background">@color/datebackground</item>
         <item name="android:scaleX">0.90</item>
         <item name="android:scaleY">0.90</item>
+        <item name="android:colorAccent">@color/tomorow</item>
+        <item name="android:colorControlActivated">@color/tomorow</item>
+
     </style>
+
+    <style name="timePickerstyle" parent="android:Widget.Material.Light.TimePicker">
+        <item name="android:timePickerMode">clock</item>
+        <item name="android:headerBackground">@color/numbercolor</item>
+        <item name="android:background">@color/datebackground</item>
+        <item name="android:numbersTextColor">@color/numbercolor</item>
+        <item name="android:numbersInnerTextColor">@color/numbercolor</item>
+        <item name="android:numbersSelectorColor">@color/numbercolor</item>
+        <item name="android:numbersBackgroundColor">@color/headerBackground</item>
+    </style>
+
 
 </resources>

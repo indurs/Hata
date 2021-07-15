@@ -22,10 +22,16 @@
     -->
 
     <style name="Theme.Hata" parent="android:Theme.Material.NoActionBar">
-        <item name="android:colorPrimary">#ee9b02</item>
-        <item name="android:colorAccent">#c8004f</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:colorPrimary">#ff1b9c64</item>
+        <item name="android:colorAccent">#ff4c5663</item>
+        <item name="android:statusBarColor">@color/immersive_sys_ui</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <style name="date_picker_theme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="colorAccent">#3ba2ff</item>
+        <item name="colorOnPrimary">#FF003087</item>
+        <item name="colorSurface">#ff4d4c59</item>
     </style>
 
 </resources>

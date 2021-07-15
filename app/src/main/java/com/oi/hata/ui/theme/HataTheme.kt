@@ -40,18 +40,19 @@ private val blue_700 = Color(0xFF1680ea)
 
 //Month colors
 
-val jan = Color(0xFF024eee)
-val feb = Color(0xFFc6129f)
-val mar = Color(0xFF008744)
-val apr = Color(0xFF875200)
-val may = Color(0xFF003087)
-val jun = Color(0xFF873600)
-val jul = Color(0xFF8f6a1a)
-val aug = Color(0xFF0b6545)
-val sep = Color(0xFF1363c9)
-val oct = Color(0xFF7911aa)
-val nov = Color(0xFF447019)
-val dec = Color(0xFF194470)
+val jan = Color(0xFF4e7ffc)
+val feb = Color(0xFFfe8cef)
+val mar = Color(0xFF7fff82)
+val apr = Color(0xFFe4f81b)
+val may = Color(0xFFff96b1)
+val jun = Color(0xFF4efcea)
+val jul = Color(0xFF9fa3fd)
+val aug = Color(0xFF4ef6fc)
+val sep = Color(0xFFf6fc4e)
+val oct = Color(0xFFe2c2fd)
+val nov = Color(0xFFfac19c)
+val dec = Color(0xFFe7f5ec)
+
 
 
 val hataColors = darkColors(
@@ -71,6 +72,13 @@ val calendarColors = lightColors(
     secondary = purple500,
     onSurface = green50
 )
+val colors = darkColors(
+    primary = Green500,
+    surface = DarkBlue900,
+    onSurface = Color.White,
+    background = DarkBlue900,
+    onBackground = Color.White
+)
 
 @Composable
 fun HataTheme(content: @Composable () -> Unit) {
@@ -81,7 +89,7 @@ fun HataTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun HataCalendarTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = calendarColors, typography = hataTypography, shapes = HataShapes) {
+    MaterialTheme(colors = colors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }
@@ -89,5 +97,5 @@ fun HataCalendarTheme(content: @Composable () -> Unit) {
 val HataShapes = Shapes(
     small = RoundedCornerShape(percent = 50),
     medium = RoundedCornerShape(size = 16.dp),
-    large = RoundedCornerShape(topStart = 8.dp,topEnd = 8.dp,bottomStart = 8.dp,bottomEnd = 8.dp)
+    large = RoundedCornerShape(topStart = 8.dp,topEnd = 8.dp,bottomStart = 8.dp,bottomEnd = 8.dp),
 )

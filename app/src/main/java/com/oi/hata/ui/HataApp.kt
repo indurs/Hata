@@ -14,7 +14,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun HataApp(homeViewModel: HomeViewModel){
+fun HataApp(){
 
         val systemUiController = rememberSystemUiController()
         val useDarkIcons = MaterialTheme.colors.isLight
@@ -28,7 +28,8 @@ fun HataApp(homeViewModel: HomeViewModel){
                 )
 
         }*/
-                NavGraph(homeViewModel = homeViewModel)
+                //HataNavGraph(homeViewModel = homeViewModel)
+        HataNavGraph()
         //NavGraphSample(startDestination = AppDestinations.SCREEN1_ROUTE)
 
 }

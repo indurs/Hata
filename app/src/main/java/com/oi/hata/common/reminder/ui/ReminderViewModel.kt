@@ -2,26 +2,22 @@ package com.oi.hata.common.reminder.ui
 
 import android.util.Log
 import androidx.compose.runtime.*
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.oi.hata.common.reminder.data.local.datasource.HataReminderDatasource
+import com.oi.hata.common.reminder.data.local.model.HataReminder
 import com.oi.hata.common.reminder.data.local.model.ReminderMaster
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.common.util.ReminderUtil.CUSTOM
 import com.oi.hata.common.util.ReminderUtil.EVERYDAY
+import com.oi.hata.common.util.ReminderUtil.NONE
 import com.oi.hata.common.util.ReminderUtil.PICKADATE
+import com.oi.hata.common.util.ReminderUtil.TIME
 import com.oi.hata.common.util.ReminderUtil.TODAY
 import com.oi.hata.common.util.ReminderUtil.TOMORROW
-import com.oi.hata.data.HataDataSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.*
-import java.time.format.DateTimeFormatter
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,24 +30,24 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
 
     var reminder by mutableStateOf("")
     var choosenType by mutableStateOf(ReminderUtil.WhenSelectType.NONE)
-    var reminderTime by mutableStateOf("Time")
-    var reminderDueDate by mutableStateOf("")
-    var reminderTxt by mutableStateOf("")
+    var reminderTime by mutableStateOf(TIME)
 
-    var dueDateSelected by mutableStateOf(false)
+
     var pickDateSelected by mutableStateOf(false)
     var reminderSelected by mutableStateOf(false)
-    var timeSelected by mutableStateOf(false)
-    var taskselected by mutableStateOf(false)
+
     var reminderOptSelected by mutableStateOf(ReminderUtil.NONE)
+    var reminderPrevOpt = ReminderUtil.NONE
     var reminderCustomSelected by mutableStateOf(false)
     var pickAdate by mutableStateOf("")
 
-    lateinit var dueDate: LocalDate
+    var reminderTimeSelected by mutableStateOf(false)
+
+
     var reminderEndYear: Int = 0
 
     init{
-       // Log.d("REMINDER VIEW MODEL","INITIAL>>>>>>>>>>>>>>>>>>")
+       Log.d("REMINDER VIEW MODEL","INITIAL>>>>>>>>>>>>>>>>>>*********************>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*****************************************************")
     }
 
     fun onMonthSelected(month: String){
@@ -115,15 +111,13 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
         buildReminder()
     }
 
-    fun onReminderTxtChange(reminder: String){
-        reminderTxt = reminder
-    }
-
     fun onPickaDateSelected(selected: Boolean){
         pickDateSelected = selected
     }
 
     fun onReminderOptionSelected(remOption:String){
+        reminderPrevOpt = reminderOptSelected
+        println("onReminderOptionSelected>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>0"+remOption)
         reminderOptSelected = remOption
         pickAdate = ""
 
@@ -147,27 +141,21 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
         }
     }
 
-    fun onReminderCustomClick(){
+    fun onReminderCustomClick(hataReminder: HataReminder?){
+        println("onReminderCustomClick>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        reminderPrevOpt = reminderOptSelected
         pickAdate = ""
-        if(!reminderCustomSelected) {
-            reminderOptSelected = ReminderUtil.NONE
-            reminderCustomSelected = true
-            clearCustomReminderValues()
-        }else
-            reminderCustomSelected = false
-    }
+        reminderCustomSelected = true
+        reminderOptSelected = CUSTOM
+        //
+        // clearCustomReminderValues()
+        resetCustomReminderValues()
 
-    fun onDueDateSelect(year: Int,month: Int, day: Int){
-        var mth = if(month < 10) "0" + month.toString() else month.toString()
-        var dt = if(day < 10) "0" + day.toString() else day.toString()
-
-        reminderDueDate = year.toString() + "-" + mth + "-" + dt
-
-        var localDateTime = LocalDateTime.of(year,month,day,0,0)
-
-        //var offsetDateTime = OffsetDateTime.now()
-        dueDate = LocalDate.parse(reminderDueDate, DateTimeFormatter.ISO_LOCAL_DATE)
-        dueDateSelected = true
+        if (hataReminder != null) {
+            println("option type >>>>>>>>>>>>>>>>************************************>"+hataReminder!!.reminderOption)
+            println("onReminderCustomClick initCustomReminderValues***************************************************************")
+            initReminderValues(hataReminder)
+        }
 
     }
 
@@ -190,16 +178,14 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     fun onTimeSelect(hour: Int, minute: Int, am: Boolean){
         var am_pm = ""
         if(am) am_pm = ReminderUtil.AM_PM.AM.name else ReminderUtil.AM_PM.PM.name
-        reminderTime = hour as String + ":" + minute as String + am_pm
+        reminderTime = hour.toString() + ":" + minute.toString() + " " + am_pm
     }
 
-    fun onTimeSelected(){
-        timeSelected = !timeSelected
+    fun onReminderTimeSelected(selected: Boolean){
+        reminderTimeSelected = selected
     }
 
-    fun onTaskSelected(selected: Boolean){
-        taskselected = selected
-    }
+
 
     fun onReminderSelected(selected: Boolean){
         reminderSelected = selected
@@ -236,6 +222,7 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
         if(reminderCustomSelected) {
             setCustomReminderType()
             reminder = buildReminderStr()
+            reminderOptSelected = CUSTOM
         }else{
             reminder = ""
         }
@@ -267,32 +254,57 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
         }
     }
 
-    fun clearCustomReminderValues(){
+    fun clearCustomReminderValues(hataReminder: HataReminder?){
+        println("clearCustomReminderValues>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         months = emptyList()
         dates = emptyList()
         weeks = emptyList()
         weeknums = emptyList()
         choosenType = ReminderUtil.WhenSelectType.NONE
+        reminderOptSelected = CUSTOM
+
+        reminderCustomSelected = false
+        reminder = " "
     }
 
-    fun clearReminderValues(){
-        clearCustomReminderValues()
-
-        reminderTime = ""
-        reminderDueDate = ""
-        reminderOptSelected = ""
-        pickAdate = ""
-
+    fun resetCustomReminderValues(){
+        months = emptyList()
+        dates = emptyList()
+        weeks = emptyList()
+        weeknums = emptyList()
+        choosenType = ReminderUtil.WhenSelectType.NONE
+        reminder = ""
     }
 
-    fun getTodaysReminders(): Flow<List<ReminderMaster>> = flow{
+    fun initReminderValues(hataReminder: HataReminder?){
+        if(hataReminder!=null){
+            if(hataReminder.reminderMonths!=null)
+                months = hataReminder.reminderMonths
+            if(hataReminder.reminderDates!=null)
+                dates = hataReminder.reminderDates
+            if(hataReminder.reminderWeeks !=null)
+                weeks = hataReminder.reminderWeeks
+            if(hataReminder.reminderWeekNum != null)
+                weeknums = hataReminder.reminderWeekNum
 
-        hataReminderDatasource.getTodaysReminders().flowOn(Dispatchers.IO).collect {
-                    emit(it)
+            choosenType = ReminderUtil.WhenSelectType.valueOf(hataReminder.remCustomWhenSelectType)
+            reminder = hataReminder.alarmScreenVal
+
+            reminderOptSelected = hataReminder.reminderOption
+            reminderTime = hataReminder.reminderTime
+            pickAdate = hataReminder.remoptPickDate
+
+            if(reminderOptSelected == CUSTOM)
+                reminderCustomSelected = true
+        }else{
+            reminderOptSelected = NONE
+            pickAdate = ""
+            pickDateSelected = false
+            reminderTimeSelected = false
+            reminderTime = TIME
+
         }
-
     }
-
     /* getTodaysReminders(): Flow<List<ReminderMaster>> = flow{
 
        viewModelScope.launch {
@@ -303,7 +315,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     */
 
     fun buildReminderStr(): String{
-        Log.d("buildReminderStr","buildReminderStr >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         var reminder = ""
         when(choosenType) {
             ReminderUtil.WhenSelectType.DATE -> {
@@ -369,37 +380,33 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
             return num.toString() + ReminderPreSuffix.TH.title
     }
 
-    fun saveReminder(){
-        Log.d("saveReminder >>>","saveReminder>>>>>>>>>>>>>>>>>>>whenSelectType "+choosenType!!.name + "reminderOptSelected "+reminderOptSelected)
+    fun getReminderValues(): HataReminder{
 
-        viewModelScope.launch {
-            hataReminderDatasource.insertReminder(
-                reminderTxt = reminderTxt,
-                alarmScreenVal = reminder,
-                reminderTime = reminderTime,
-                reminderDueDate = dueDate,
-                whenSelectType = choosenType!!.name,
-                reminderMonths = months,
-                reminderDates = dates,
-                reminderWeeks = weeks,
-                reminderWeekNum = weeknums,
-                reminderEndYear = reminderEndYear,
-                reminderOption = reminderOptSelected,
-                remoptPickDate = pickAdate
-            )
-        }
-
+        println("getReminderValues  **********************************************************"+reminderOptSelected)
+        return HataReminder(
+            reminderMonths = months,
+            reminderDates = dates,
+            reminderWeeks = weeks,
+            reminderWeekNum = weeknums,
+            alarmScreenVal = reminder,
+            remCustomWhenSelectType = choosenType!!.name,
+            reminderFormat = "",
+            reminderOption = reminderOptSelected,
+            remoptPickDate = pickAdate,
+            reminderEndYear = 0,
+            reminderTime = reminderTime,
+            reminderId = 0
+        )
     }
 
     enum class ReminderPreSuffix(val title: String) {
-        EVERY_DAY("Every day in"),
+        EVERY_DAY("Every day in "),
         EVERY_MONTH(" of every month"),
-        ST("st"),
-        ND("nd"),
-        RD("rd"),
-        TH("th"),
-        OF("of")
+        ST("st "),
+        ND("nd "),
+        RD("rd "),
+        TH("th "),
+        OF("of ")
     }
-
 
 }

@@ -21,13 +21,13 @@ object ReminderUtil {
 
         var d = 0
         val datesByDay: HashMap<String, ArrayList<Int>> = HashMap<String,ArrayList<Int>>()
-        datesByDay.put(WEEKNAMES.SUN.name, ArrayList())
-        datesByDay.put(WEEKNAMES.MON.name, ArrayList())
-        datesByDay.put(WEEKNAMES.TUE.name, ArrayList())
-        datesByDay.put(WEEKNAMES.WED.name, ArrayList())
-        datesByDay.put(WEEKNAMES.THU.name, ArrayList())
-        datesByDay.put(WEEKNAMES.FRI.name, ArrayList())
-        datesByDay.put(WEEKNAMES.SAT.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Sun.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Mon.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Tue.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Wed.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Thu.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Fri.name, ArrayList())
+        datesByDay.put(WEEKNAMES.Sat.name, ArrayList())
 
         if(month == 2 && isLeapYear(year))
             days[month] = 29
@@ -55,7 +55,7 @@ object ReminderUtil {
         return false
     }
 
-    enum class WEEKNAMES{ SUN, MON, TUE, WED, THU, FRI, SAT }
+    enum class WEEKNAMES{ Sun, Mon, Tue, Wed, Thu, Fri, Sat }
 
     var days = intArrayOf(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
