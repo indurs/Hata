@@ -1,8 +1,6 @@
 package com.oi.hata.task.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColor
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
@@ -15,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -24,16 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -46,7 +45,9 @@ import com.oi.hata.common.ui.components.HataDatePicker
 import com.oi.hata.common.ui.reminder.ReminderOptions
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.model.GroupTask
+import com.oi.hata.task.data.model.ImportantGroupTask
 import com.oi.hata.task.data.model.Task
+import com.oi.hata.ui.theme.shapes
 import kotlinx.coroutines.launch
 
 import kotlin.math.max
@@ -89,7 +90,7 @@ fun TaskItem(
 
 @ExperimentalMaterialApi
 @Composable
-fun TaskGroup(
+fun TaskGroup(  taskSize: Int = 0,
                 groupTask: GroupTask,
                 taskContentUpdates: TaskContentUpdates,
                 groupscroll:ScrollState,
@@ -99,7 +100,9 @@ fun TaskGroup(
     val scope = rememberCoroutineScope()
 
     Surface(elevation = 0.dp,
-        modifier = Modifier.padding(16.dp).focusable(taskContentUpdates.selectedTaskGroup.Group!!.name.equals(groupTask.Group!!.name)),
+        modifier = Modifier
+            .padding(16.dp)
+            .focusable(taskContentUpdates.selectedTaskGroup.Group!!.name.equals(groupTask.Group!!.name)),
         color = groupTransitionState.colorAlpha,
         onClick = {
                     taskContentUpdates.onSelectedTaskGroup(groupTask)
@@ -120,12 +123,19 @@ fun TaskGroup(
             Box(modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .background(color = groupTransitionState.colorAlpha)){
-
-                    Text(
-                        text = groupTask.tasks!!.size.toString(),
-                        style = MaterialTheme.typography.overline,
-                        color = groupTransitionState.contentAlpha
-                         )
+                    if(groupTask.Group.id == 2L){
+                        Text(
+                            text = (groupTask.tasks!!.size + taskContentUpdates.importantGroupTask.tasks!!.size).toString(),
+                            style = MaterialTheme.typography.overline,
+                            color = groupTransitionState.contentAlpha
+                        )
+                    }else{
+                        Text(
+                            text = groupTask.tasks!!.size.toString(),
+                            style = MaterialTheme.typography.overline,
+                            color = groupTransitionState.contentAlpha
+                        )
+                    }
 
                     Icon(
                         painter = painterResource(R.drawable.ic_baseline_grain_24),
@@ -183,28 +193,95 @@ fun TaskList(
 
                                     Divider(thickness = 0.20.dp,color = Color.Yellow.copy(alpha = 0.50f))
                                 }
-                                //Text(text = task.task,modifier = Modifier.padding(8.dp))
-                                Column(
-
-                                ) {
-                                    Row(horizontalArrangement = Arrangement.Start, modifier = Modifier
-                                        .fillMaxWidth()
-
-                                    ){
-
-                                        Text(
-                                            text = task.task,
-                                            modifier = Modifier.padding(16.dp),
-                                            style = MaterialTheme.typography.body2,
-                                            color = Color.White)
-                                    }
-
-                                }
+                                TaskItem(task = task,taskContentUpdates = taskContentUpdates)
                             }
                         }
                     }
                 }
         }
+}
+
+@Composable
+fun TaskItem(
+            task: Task,
+            taskContentUpdates: TaskContentUpdates
+            ){
+
+    val taskItemCompleteTransitionState = taskItemCompleteTransition(task = task,taskContentUpdates = taskContentUpdates)
+    val taskItemImportantTransitionState = taskItemImportantTransition(task = task, taskContentUpdates = taskContentUpdates)
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                taskContentUpdates.onTaskSelected()
+                taskContentUpdates.onTaskItemClick(task.id)
+            }
+    ) {
+        Row( modifier = Modifier
+            .fillMaxWidth()
+
+        ){
+            Box(modifier = Modifier
+                .align(
+                    Alignment
+                        .CenterVertically
+                )
+                .padding(start = 8.dp)
+                .clickable { taskContentUpdates.onTaskCompleted(task) }
+            ){
+                Icon(
+                    modifier = Modifier.size(20.dp),
+                    painter = painterResource(R.drawable.ic_action_circle),
+                    contentDescription = null,
+                    tint = colorResource(id = R.color.dec)
+                )
+
+                Icon(
+                    painter = painterResource(R.drawable.ic_action_check),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(12.dp)
+                        .align(Alignment.Center),
+                    tint = taskItemCompleteTransitionState.contentAlpha
+                )
+            }
+
+            Text(
+                text = task.task,
+                modifier = Modifier
+                    .padding(start = 16.dp,top=16.dp,bottom=16.dp)
+                    ,
+                style = MaterialTheme.typography.body2,
+                color = taskItemCompleteTransitionState.colorAlpha)
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterVertically)
+               ) {
+                Row(modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(end = 8.dp)) {
+                    Box(modifier = Modifier.clickable { taskContentUpdates.onTaskImportant(task) }){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_star),
+                            modifier = Modifier.size(20.dp),
+                            contentDescription = null,
+                            tint = colorResource(id = R.color.sample)
+                        )
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            painter = painterResource(R.drawable.ic_action_star_full),
+                            contentDescription = null,
+                            tint = taskItemImportantTransitionState.contentAlpha
+                        )
+                    }
+                }
+            }
+
+        }
+
+    }
 }
 
 @ExperimentalMaterialApi
@@ -240,6 +317,117 @@ private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
 
         Divider(thickness = 1.dp,color = Color.Gray)
         
+    }
+}
+
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@Composable
+private fun AddGroupButton(taskContentUpdates: TaskContentUpdates){
+
+    Column(modifier = Modifier.clickable { taskContentUpdates.onAddgroupSelected() }) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(top = 16.dp, end = 16.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .border(
+                        BorderStroke(1.dp, color = Color.White),
+                        shape = MaterialTheme.shapes.medium
+                    ),
+                color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
+            ) {
+                Row() {
+                    AnimatedVisibility(visible = taskContentUpdates.addGroupSelected) {
+                        AddGroup(taskContentUpdates = taskContentUpdates)
+                    }
+                    AnimatedVisibility(visible = !taskContentUpdates.addGroupSelected) {
+                        Row() {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_action_add),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 4.dp),
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.sample)
+                            )
+                            Text(
+                                modifier = Modifier.padding(top=4.dp,bottom = 4.dp,start = 4.dp,end = 8.dp),
+                                text = "Group",
+                                style = MaterialTheme.typography.overline,
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(AddTaskHeader))
+
+    }
+}
+
+@Composable
+private fun AddGroup(taskContentUpdates: TaskContentUpdates){
+    Row(){
+
+        BasicTextField( value = taskContentUpdates.newGroup,
+            modifier = Modifier.padding(8.dp).size(height = 20.dp,width = 160.dp),
+            onValueChange = { taskContentUpdates.onAddNewGroup(it)},
+            textStyle = TextStyle(color = Color.White, ),
+            enabled = true,
+            cursorBrush = SolidColor(Color.Yellow),
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_action_add),
+            modifier = Modifier
+                .size(30.dp)
+                .align(Alignment.CenterVertically)
+                .padding(start = 4.dp,end=8.dp),
+            contentDescription = null,
+            tint = colorResource(id = R.color.sample)
+        )
+    }
+}
+
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@Composable
+private fun AddGroupContent(taskContentUpdates: TaskContentUpdates){
+
+    AnimatedContent(
+        targetState = taskContentUpdates.addGroupSelected,
+        transitionSpec = {
+            fadeIn(animationSpec = tween(150, 150)) with
+                    fadeOut(animationSpec = tween(150)) using
+                    SizeTransform { initialSize, targetSize ->
+                        if (targetState) {
+                            keyframes {
+                                // Expand horizontally first.
+                                IntSize(targetSize.width, initialSize.height) at 150
+                                durationMillis = 300
+                            }
+                        } else {
+                            keyframes {
+                                // Shrink vertically first.
+                                IntSize(initialSize.width, targetSize.height) at 150
+                                durationMillis = 300
+                            }
+                        }
+                    }
+        }
+    ) { targetExpanded ->
+        if (targetExpanded) {
+            AddGroup(taskContentUpdates = taskContentUpdates)
+        } else {
+            AddGroupButton(taskContentUpdates = taskContentUpdates)
+        }
     }
 }
 
@@ -320,8 +508,12 @@ fun TaskButton(onTaskAddClick: () -> Unit){
     }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
 @Composable
-fun TaskTopBar(modifier: Modifier,groupScrollState: ScrollState){
+fun TaskTopBar(modifier: Modifier,
+               taskContentUpdates: TaskContentUpdates,
+               groupScrollState: ScrollState){
     //val maxOffset = with(LocalDensity.current) { if(groupScrollState.value > 0 || tasksscroll.value > 0) (MinTopBarOffset - (groupScrollState.value + tasksscroll.value).toDp()) else MinTopBarOffset }
 
     Surface(modifier = modifier
@@ -330,20 +522,25 @@ fun TaskTopBar(modifier: Modifier,groupScrollState: ScrollState){
         ) {
         Header()
         Row() {
-            IconButton(
-                onClick = {  },
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                    .size(36.dp)
-                    .background(color = Color.White, shape = CircleShape)
+            Column() {
+                IconButton(
+                    onClick = {  },
+                    modifier = Modifier
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                        .size(36.dp)
+                        .background(color = Color.White, shape = CircleShape)
 
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = "Back"
-                )
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
             }
+
+            AddGroupButton(taskContentUpdates = taskContentUpdates)
+
         }
     }
 }
@@ -661,6 +858,81 @@ fun groupTransition(
     }
 }
 
+class TaskItemTransition(
+    contentAlpha: State<Color>,
+    colorAlpha: State<Color>
+) {
+    val contentAlpha by contentAlpha
+    val colorAlpha by colorAlpha
+}
+
+@Composable
+fun taskItemCompleteTransition(
+    task: Task,
+    taskContentUpdates: TaskContentUpdates
+): TaskItemTransition {
+
+    val transition = updateTransition(
+        targetState = if (task.completed)
+            SelectionState.Selected
+        else SelectionState.Unselected,
+        label = ""
+    )
+
+    val contentAlpha = transition.animateColor { state ->
+        when (state) {
+            SelectionState.Unselected -> colorResource(id = R.color.dec).copy(alpha = 0.0f)
+            SelectionState.Selected -> colorResource(id = R.color.dec)
+        }
+    }
+
+    val colorAlpha = transition.animateColor { state ->
+        when (state) {
+            SelectionState.Unselected -> Color.White
+            SelectionState.Selected -> Color.White.copy(alpha = 0.30f)
+        }
+    }
+
+    return remember(transition) {
+        TaskItemTransition(contentAlpha = contentAlpha,colorAlpha = colorAlpha)
+    }
+
+}
+
+@Composable
+fun taskItemImportantTransition(
+    task: Task,
+    taskContentUpdates: TaskContentUpdates
+): TaskItemTransition {
+    println("TASK GROUP >>>>>>>>>>>>>>>>>>>"+ task.importantGroupId)
+    val transition = updateTransition(
+        targetState = if (task.importantGroupId == 2L )
+            SelectionState.Selected
+        else SelectionState.Unselected,
+        label = ""
+    )
+
+    val contentAlpha = transition.animateColor { state ->
+        when (state) {
+            SelectionState.Unselected -> colorResource(id = R.color.sample).copy(alpha = 0.0f)
+            SelectionState.Selected -> colorResource(id = R.color.sample)
+        }
+    }
+
+    val colorAlpha = transition.animateColor { state ->
+        when (state) {
+            SelectionState.Unselected -> Color.White
+            SelectionState.Selected -> Color.White.copy(alpha = 0.10f)
+        }
+    }
+
+    return remember(transition) {
+        TaskItemTransition(contentAlpha = contentAlpha,colorAlpha = colorAlpha)
+    }
+
+}
+
+
 data class CustomReminderContentUpdates(
     val onCustomReminderSelect: () -> Unit,
     val onCustomReminderInitialize: () -> Unit,
@@ -688,21 +960,31 @@ data class ReminderContentUpdates(
     val reminderTime: String,
 )
 
-data class TaskContentUpdates(
+data class
+TaskContentUpdates(
     val onTaskSelected: () -> Unit,
+    val taskselected: Boolean,
+    val onTaskCompleted: (Task) -> Unit,
+    val taskcompleted: List<Long>,
+    val onTaskImportant: (Task) -> Unit,
+    val taskImportant: List<Long>,
     val onTaskTxtChange: (String) -> Unit,
+    val taskTxt: String,
     val onSaveTask: (Long) -> Unit,
     val onAddTaskSelected: () -> Unit,
     val onDueDateSelect: (year: Int, month: Int, day:Int) -> Unit,
+    val dueDateSelected: Boolean,
     val onCloseTask: () -> Unit,
     val onTaskItemClick: (Long) -> Unit,
-    val taskselected: Boolean,
     val selectedTaskGroup: GroupTask,
+    val importantGroupTask: ImportantGroupTask,
     val onSelectedTaskGroup: (GroupTask) -> Unit,
-    val taskTxt: String,
-    val dueDateSelected: Boolean,
+    val onAddgroupSelected: () -> Unit,
+    val addGroupSelected: Boolean,
+    val onAddNewGroup: (String) -> Unit,
+    val newGroup: String,
     val dueDate: String,
-    val groupId: Long
+    val groupId: Long,
 )
 
 enum class TASK_MODE { INSERT, UPDATE, DELETE }

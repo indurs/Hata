@@ -3,6 +3,7 @@ package com.oi.hata.task.data.dao
 import androidx.room.*
 import com.oi.hata.task.data.model.Group
 import com.oi.hata.task.data.model.GroupTask
+import com.oi.hata.task.data.model.ImportantGroupTask
 import com.oi.hata.task.data.model.Task
 import kotlinx.coroutines.flow.Flow
 
@@ -24,6 +25,11 @@ interface GroupDao {
     @Transaction
     @Query("SELECT * FROM taskgroup WHERE group_id = :groupId ")
     fun getTaskGroup(groupId: Long): Flow<GroupTask>
+
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query("SELECT * FROM taskgroup WHERE group_id = :groupId ")
+    fun getImportantGroup(groupId: Long): Flow<ImportantGroupTask>
 
     @RewriteQueriesToDropUnusedColumns
     @Transaction

@@ -1,5 +1,6 @@
 package com.oi.hata.task.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -31,6 +32,7 @@ import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.model.Group
 import com.oi.hata.task.data.model.GroupTask
+import com.oi.hata.task.data.model.ImportantGroupTask
 import com.oi.hata.ui.TaskViewModel
 import kotlinx.coroutines.delay
 
@@ -46,8 +48,13 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 
 
     val grouptasksState = taskViewModel.getGroupTasks().collectAsState(initial = emptyList())
+
     val groupTaskState = taskViewModel.getGroupTask(taskViewModel.selectedTaskGroup.Group!!.name).collectAsState(initial = GroupTask(
-        Group(0,""), emptyList()
+        Group(1,"Tasks"), emptyList()
+    ))
+
+    val importantTasksState = taskViewModel.getImportantGroupTask(2).collectAsState(initial = ImportantGroupTask(
+        Group(0,"Important"), emptyList()
     ))
 
     val taskContentUpdates = TaskContentUpdates(
@@ -64,7 +71,16 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         dueDate = taskViewModel.reminderDueDate,
         groupId = groupTaskState.value!!.Group!!.id,
         selectedTaskGroup = taskViewModel.selectedTaskGroup,
-        onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) }
+        onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
+        onTaskCompleted = { taskViewModel.onTaskCompleted(it) },
+        taskcompleted = taskViewModel.taskCompleted,
+        taskImportant = taskViewModel.taskImportant,
+        onTaskImportant = { taskViewModel.onTaskImportant(it) },
+        importantGroupTask = importantTasksState.value,
+        addGroupSelected = taskViewModel.addgroupSelected,
+        onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
+        newGroup = taskViewModel.newGroup,
+        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)}
     )
 
     val reminderContentUpdates = ReminderContentUpdates(
@@ -127,6 +143,7 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 
                 Groups(
                     modifier = Modifier,
+                    selectedGroup = groupTaskState.value,
                     groupTasks = grouptasksState.value,
                     groupscroll = groupscroll,
                     taskContentUpdates = taskContentUpdates
@@ -154,7 +171,7 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
                         customReminderContentUpdates = customReminderContentUpdates
                     )
                 }
-                TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll)
+                TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,taskContentUpdates = taskContentUpdates)
 
             }
         }
@@ -194,11 +211,13 @@ fun Tasks(modifier: Modifier = Modifier,
 
 
 
+@SuppressLint("UnusedCrossfadeTargetStateParameter")
 @ExperimentalMaterialApi
 @Composable
 fun Groups(
     modifier: Modifier,
     groupTasks: List<GroupTask>,
+    selectedGroup: GroupTask,
     groupscroll:ScrollState,
     taskContentUpdates: TaskContentUpdates,
 ){
@@ -207,6 +226,7 @@ fun Groups(
     val offset = maxOffset - groupscroll.value
 
     //val offset = if(taskListState.isScrollInProgress ) (maxOffset - 200) else maxOffset
+
 
     Column(modifier.fillMaxWidth(),
     ) {
@@ -222,8 +242,9 @@ fun Groups(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.verticalScroll(groupscroll)) {
-                
+
                 StaggeredGrid(modifier = Modifier.animateContentSize(),taskContentUpdates = taskContentUpdates) {
+
                     Crossfade(targetState = taskContentUpdates.selectedTaskGroup,
                         modifier = Modifier.animateContentSize(tween(50)),
                         animationSpec = keyframes {
@@ -232,7 +253,11 @@ fun Groups(
                             1f at 1000
                         }
                     ) {
-                        TaskGroup(groupTask = it, taskContentUpdates = taskContentUpdates,groupscroll = groupscroll)
+                        groupTasks.forEach { task ->
+                            if (taskContentUpdates.selectedTaskGroup.Group!!.name.equals(task.Group!!.name)) {
+                                TaskGroup(groupTask = task, taskContentUpdates = taskContentUpdates,groupscroll = groupscroll)
+                            }
+                        }
                     }
 
                     groupTasks.forEach {

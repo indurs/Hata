@@ -181,28 +181,28 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
     fun getAllReminders(whenSelectType: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType AND reminder_date = :date """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType AND reminder_date = :date """)
     fun getRemindersforDate(whenSelectType: String,date: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
     fun getRemindersforMonth(whenSelectType: String,month: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id 
                         INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_date = :date AND reminder_month = :month """)
@@ -212,7 +212,7 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_week = :week """)
     fun getRemindersforWeek(whenSelectType: String,week: String): List<Task>
@@ -221,7 +221,7 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
                         INNER JOIN reminder_weeknum ON week_reminder_id
@@ -233,7 +233,7 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id
@@ -247,7 +247,7 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
