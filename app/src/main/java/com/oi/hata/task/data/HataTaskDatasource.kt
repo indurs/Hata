@@ -18,8 +18,12 @@ class HataTaskDatasource @Inject constructor(private val hataDatabase: HataDatab
                                              private val groupDao: GroupDao
 ){
 
-    suspend fun insertGroup(group: Group){
-        hataDatabase.groupDao().insertGroup(group)
+    suspend fun insertGroup(group: Group):Long{
+        return hataDatabase.groupDao().insertGroup(group)
+    }
+
+    suspend fun deleteTask(task: Task){
+        hataDatabase.taskDao().deleteTask(task)
     }
 
     suspend fun getTaskGroups(): Flow<List<GroupTask>> {

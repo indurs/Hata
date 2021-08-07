@@ -3,8 +3,7 @@ package com.oi.hata.task.ui
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,25 +15,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import com.google.accompanist.insets.statusBarsPadding
 import com.oi.hata.R
@@ -48,9 +52,12 @@ import com.oi.hata.task.data.model.GroupTask
 import com.oi.hata.task.data.model.ImportantGroupTask
 import com.oi.hata.task.data.model.Task
 import com.oi.hata.ui.theme.shapes
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.reflect.KFunction0
 
 @ExperimentalMaterialApi
@@ -160,6 +167,7 @@ fun TaskGroup(  taskSize: Int = 0,
     }
 }
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun TaskList(
@@ -187,22 +195,136 @@ fun TaskList(
                         .verticalScroll(taskscroll)
 
                     ) {
-                        groupTask?.let{
+                        DismissableTasks(groupTask = groupTask, taskContentUpdates = taskContentUpdates)
+                        /*groupTask?.let{
                             it.tasks!!.mapIndexed { index, task ->
                                 if (index > 0) {
-
-                                    Divider(thickness = 0.20.dp,color = Color.Yellow.copy(alpha = 0.50f))
+                                    //Divider(thickness = 0.20.dp,color = Color.Yellow.copy(alpha = 0.50f))
+                                    Spacer(modifier = Modifier.height(8.dp).pointerInput(Unit){
+                                        coroutineScope {
+                                            launch {
+                                                detectDragGestures(
+                                                    onDrag = {change, dragAmount ->  }
+                                                )
+                                            }
+                                        }
+                                    }
+                                        
+                                    )
                                 }
-                                TaskItem(task = task,taskContentUpdates = taskContentUpdates)
+                                    TaskItem(task = task,taskContentUpdates = taskContentUpdates)
                             }
-                        }
+                        }*/
                     }
                 }
         }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@Composable
+private fun TaskRow(
+    task: Task,
+    taskContentUpdates: TaskContentUpdates
+){
+    var unread by remember { mutableStateOf(false) }
+    var delete by remember { mutableStateOf(false) }
+
+
+    val dismissState = rememberDismissState(
+        confirmStateChange = {
+            if (it == DismissValue.DismissedToEnd) unread = !unread
+            it != DismissValue.DismissedToEnd
+            it == DismissValue.DismissedToStart
+        }
+
+    )
+
+    LaunchedEffect(dismissState.currentValue){
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
+        if(dismissState.currentValue == DismissValue.DismissedToStart)
+            taskContentUpdates.onDeleteTask(task)
+    }
+
+    LaunchedEffect(dismissState.targetValue){
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
+
+        if(dismissState.targetValue == DismissValue.DismissedToEnd)
+            taskContentUpdates.onTaskCompleted(task)
+    }
+    /*DisposableEffect(dismissState.currentValue) {
+        onDispose {
+            if(dismissState.currentValue == DismissValue.DismissedToStart)
+                taskContentUpdates.onDeleteTask(task)
+        }
+    }*/
+    
+    AnimatedVisibility(visible = (dismissState.currentValue != DismissValue.DismissedToStart)) {
+        SwipeToDismiss(
+            state = dismissState,
+            modifier = Modifier.padding(vertical = 4.dp),
+            directions = setOf( DismissDirection.EndToStart,),
+            dismissThresholds = { direction ->
+                FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.3f else 0.5f)
+            },
+            background = {
+                val direction = dismissState.dismissDirection ?: return@SwipeToDismiss
+                println("background >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+direction
+                )
+                val color by animateColorAsState(
+                    when (dismissState.targetValue) {
+                        DismissValue.Default -> Color.LightGray
+                        DismissValue.DismissedToEnd -> Color.Green
+                        DismissValue.DismissedToStart -> Color.Red
+                    }
+                )
+                val alignment = when (direction) {
+                    DismissDirection.StartToEnd -> Alignment.CenterStart
+                    DismissDirection.EndToStart -> Alignment.CenterEnd
+                }
+                val icon = when (direction) {
+                    DismissDirection.StartToEnd ->  if(!unread) Icons.Default.Done else Icons.Default.Clear
+                    DismissDirection.EndToStart -> Icons.Default.Delete
+                }
+                val scale by animateFloatAsState(
+                    if (dismissState.targetValue == DismissValue.Default) 0.75f else 1f
+                )
+
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(color)
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = alignment
+                ) {
+                    Icon(
+                        icon,
+                        contentDescription = "Localized description",
+                        modifier = Modifier.scale(scale)
+                    )
+                }
+            },
+            dismissContent = {
+                Card(
+                    shape = RectangleShape,
+                    elevation = animateDpAsState(
+                        if (dismissState.dismissDirection != null) 4.dp else 0.dp
+                    ).value
+                ) {
+                    TaskItem(delete = delete,dismissState = dismissState, task = task, taskContentUpdates = taskContentUpdates)
+                }
+            }
+        )
+    }
+
+}
+
+@ExperimentalMaterialApi
 @Composable
 fun TaskItem(
+            delete: Boolean,
+            dismissState: DismissState,
             task: Task,
             taskContentUpdates: TaskContentUpdates
             ){
@@ -210,67 +332,107 @@ fun TaskItem(
     val taskItemCompleteTransitionState = taskItemCompleteTransition(task = task,taskContentUpdates = taskContentUpdates)
     val taskItemImportantTransitionState = taskItemImportantTransition(task = task, taskContentUpdates = taskContentUpdates)
 
-
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
+            .fillMaxWidth().padding(top = 4.dp,bottom = 4.dp)
+
+            //.swipeToDismiss { taskContentUpdates.deleteTask(task) }
+            /*.clickable {
                 taskContentUpdates.onTaskSelected()
                 taskContentUpdates.onTaskItemClick(task.id)
-            }
+            }*/
     ) {
+
         Row( modifier = Modifier
             .fillMaxWidth()
 
         ){
-            Box(modifier = Modifier
-                .align(
-                    Alignment
-                        .CenterVertically
-                )
-                .padding(start = 8.dp)
-                .clickable { taskContentUpdates.onTaskCompleted(task) }
-            ){
-                Icon(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(R.drawable.ic_action_circle),
-                    contentDescription = null,
-                    tint = colorResource(id = R.color.dec)
-                )
+                Column(modifier = Modifier
+                    .align(
+                        Alignment
+                            .CenterVertically
+                    )
+                    .clickable { taskContentUpdates.onTaskCompleted(task) }
+                    .padding(8.dp)
 
-                Icon(
-                    painter = painterResource(R.drawable.ic_action_check),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(12.dp)
-                        .align(Alignment.Center),
-                    tint = taskItemCompleteTransitionState.contentAlpha
-                )
-            }
+
+                ) {
+                    Box(
+                    ){
+                        Icon(
+                            modifier = Modifier.size(28.dp),
+                            painter = painterResource(R.drawable.ic_action_circle),
+                            contentDescription = null,
+                            tint = colorResource(id = R.color.dec)
+                        )
+
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_check),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(12.dp)
+                                .align(Alignment.Center),
+                            tint = taskItemCompleteTransitionState.contentAlpha
+                        )
+                    }
+                }
+
 
             Text(
                 text = task.task,
                 modifier = Modifier
-                    .padding(start = 16.dp,top=16.dp,bottom=16.dp)
+                    .padding(start = 4.dp, top = 16.dp, bottom = 16.dp)
+                    .weight(3f)
+                    .clickable {    taskContentUpdates.onTaskSelected()
+                                    taskContentUpdates.onTaskItemClick(task.id)
+                               }
+                    /*.pointerInput(Unit) {
+                        coroutineScope {
+                            launch {
+                                detectTapGestures(
+                                    onTap = {
+                                        taskContentUpdates.onTaskSelected()
+                                        taskContentUpdates.onTaskItemClick(task.id)
+                                    }
+                                )
+                            }
+                        }
+                    }*/
                     ,
                 style = MaterialTheme.typography.body2,
                 color = taskItemCompleteTransitionState.colorAlpha)
             Column(modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .align(Alignment.CenterVertically)
                ) {
                 Row(modifier = Modifier
                     .align(Alignment.End)
                     .padding(end = 8.dp)) {
+                    Box(modifier = Modifier
+                        .padding(top = 2.dp, end = 8.dp)
+                        .clickable { taskContentUpdates.onTaskImportant(task) }){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_today),
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .size(24.dp),
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.50f)
+                        )
+                    }
                     Box(modifier = Modifier.clickable { taskContentUpdates.onTaskImportant(task) }){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_star),
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .size(24.dp),
                             contentDescription = null,
                             tint = colorResource(id = R.color.sample)
                         )
                         Icon(
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .size(24.dp),
                             painter = painterResource(R.drawable.ic_action_star_full),
                             contentDescription = null,
                             tint = taskItemImportantTransitionState.contentAlpha
@@ -281,43 +443,72 @@ fun TaskItem(
 
         }
 
+
     }
+
 }
 
 @ExperimentalMaterialApi
 @Composable
 private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
-    Column {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(top = 16.dp, end = 16.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .border(
-                        BorderStroke(1.dp, color = Color.White),
-                        shape = MaterialTheme.shapes.medium
-                    ),
-                color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
+    Row() {
 
-                onClick = { taskContentUpdates.onTaskSelected() }
-            ) {
-                Text(
-                    modifier = Modifier.padding(top=4.dp,bottom = 4.dp,start = 8.dp,end = 8.dp),
-                    text = "Add Task",
-                    style = MaterialTheme.typography.overline,
-                    fontSize = 12.sp,
-                    color = Color.White
-                )
+        Column {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(top = 16.dp, end = 24.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .border(
+                            BorderStroke(1.dp, color = Color.White),
+                            shape = MaterialTheme.shapes.medium
+                        ),
+                    color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
+
+                    onClick = { taskContentUpdates.onTaskSelected() }
+                ) {
+                    Row(){
+                        Icon(
+                            painter = painterResource(R.drawable.ic_action_add),
+                            modifier = Modifier
+                                .size(20.dp)
+                                .align(Alignment.CenterVertically)
+                                .padding(start = 4.dp),
+                            contentDescription = null,
+                            tint = colorResource(id = R.color.sample)
+                        )
+                        Text(
+                            modifier = Modifier.padding(top=4.dp,bottom = 4.dp,start = 8.dp,end = 8.dp),
+                            text = "Task",
+                            style = MaterialTheme.typography.overline,
+                            fontSize = 12.sp,
+                            color = Color.White
+                        )
+                    }
+
+                }
+
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 4.dp, bottom = 4.dp, start = 8.dp, end = 8.dp)
+                            .align(Alignment.CenterStart),
+                        text = "Tasks",
+                        style = MaterialTheme.typography.overline,
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+
 
             }
-        }
-        
-        Spacer(modifier = Modifier.height(AddTaskHeader))
 
-        Divider(thickness = 1.dp,color = Color.Gray)
-        
+            Spacer(modifier = Modifier.height(AddTaskHeader))
+
+            Divider(thickness = 1.dp,color = Color.Gray)
+
+        }
     }
+
 }
 
 @ExperimentalAnimationApi
@@ -378,7 +569,9 @@ private fun AddGroup(taskContentUpdates: TaskContentUpdates){
     Row(){
 
         BasicTextField( value = taskContentUpdates.newGroup,
-            modifier = Modifier.padding(8.dp).size(height = 20.dp,width = 160.dp),
+            modifier = Modifier
+                .padding(8.dp)
+                .size(height = 20.dp, width = 160.dp),
             onValueChange = { taskContentUpdates.onAddNewGroup(it)},
             textStyle = TextStyle(color = Color.White, ),
             enabled = true,
@@ -389,45 +582,25 @@ private fun AddGroup(taskContentUpdates: TaskContentUpdates){
             modifier = Modifier
                 .size(30.dp)
                 .align(Alignment.CenterVertically)
-                .padding(start = 4.dp,end=8.dp),
+                .padding(start = 4.dp, end = 8.dp)
+                .clickable(
+                    enabled = taskContentUpdates.newGroup.isNotEmpty(),
+                    onClick = { taskContentUpdates.saveNewGroup(taskContentUpdates.newGroup) })
+            ,
             contentDescription = null,
             tint = colorResource(id = R.color.sample)
         )
-    }
-}
-
-@ExperimentalMaterialApi
-@ExperimentalAnimationApi
-@Composable
-private fun AddGroupContent(taskContentUpdates: TaskContentUpdates){
-
-    AnimatedContent(
-        targetState = taskContentUpdates.addGroupSelected,
-        transitionSpec = {
-            fadeIn(animationSpec = tween(150, 150)) with
-                    fadeOut(animationSpec = tween(150)) using
-                    SizeTransform { initialSize, targetSize ->
-                        if (targetState) {
-                            keyframes {
-                                // Expand horizontally first.
-                                IntSize(targetSize.width, initialSize.height) at 150
-                                durationMillis = 300
-                            }
-                        } else {
-                            keyframes {
-                                // Shrink vertically first.
-                                IntSize(initialSize.width, targetSize.height) at 150
-                                durationMillis = 300
-                            }
-                        }
-                    }
-        }
-    ) { targetExpanded ->
-        if (targetExpanded) {
-            AddGroup(taskContentUpdates = taskContentUpdates)
-        } else {
-            AddGroupButton(taskContentUpdates = taskContentUpdates)
-        }
+        Icon(
+            painter = painterResource(R.drawable.ic_baseline_close_24),
+            modifier = Modifier
+                .size(30.dp)
+                .align(Alignment.CenterVertically)
+                .padding(start = 4.dp, end = 8.dp)
+                .clickable { taskContentUpdates.onAddgroupSelected() }
+            ,
+            contentDescription = null,
+            tint = colorResource(id = R.color.sample)
+        )
     }
 }
 
@@ -506,6 +679,234 @@ fun TaskButton(onTaskAddClick: () -> Unit){
                                 contentDescription = "Add"
                 )
     }
+}
+
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
+@Composable
+fun DismissableTasks(groupTask: GroupTask?,taskContentUpdates: TaskContentUpdates,){
+
+    Column {
+        groupTask?.let {
+            it.tasks!!.mapIndexed { index, item ->
+                key(item.id){
+                    TaskRow(task = item, taskContentUpdates = taskContentUpdates)
+                }
+            }
+
+        }
+    }
+}
+
+
+
+private fun Modifier.swipeToDismiss(
+    onDismissed: () -> Unit
+): Modifier = composed {
+    // This `Animatable` stores the horizontal offset for the element.
+    val offsetX = remember { Animatable(0f) }
+    val offsetx = remember { mutableStateOf(0f) }
+
+    pointerInput(Unit) {
+        // Used to calculate a settling position of a fling animation.
+        val decay = splineBasedDecay<Float>(this)
+        // Wrap in a coroutine scope to use suspend functions for touch events and animation.
+        coroutineScope {
+            forEachGesture {
+                // Wait for a touch down event
+                // Interrupt any ongoing animation.
+                offsetX.stop()
+                // Prepare for drag events and record velocity of a fling.
+                val velocityTracker = VelocityTracker()
+
+
+                // Wait for drag events.
+                awaitPointerEventScope {
+                    val pointerId = awaitFirstDown().id
+                    var change =
+                        awaitHorizontalTouchSlopOrCancellation(pointerId) { change, over ->
+                            println("awaitHorizontalTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+                            val originalX = offsetX.value
+                            val newValue =
+                                (originalX + change.positionChange().x)
+                            change.consumePositionChange()
+                            //offsetX.value = newValue
+
+                            launch { offsetX.snapTo(newValue) }
+
+                            change.consumeAllChanges()
+
+                        }
+
+                    while (change != null && change.pressed) {
+                        change = awaitHorizontalDragOrCancellation(change.id)
+                        if (change != null && change.pressed) {
+                            println("awaitHorizontalDragOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+                            val originalX = offsetX.value
+                            val newValue = (originalX + change.positionChange().x)
+
+
+
+                            launch { offsetX.snapTo(newValue) }
+
+                            // Record the velocity of the drag.
+                            velocityTracker.addPosition(change.uptimeMillis, change.position)
+                            change.consumeAllChanges()
+                        }
+                    }
+
+                }
+                // Dragging finished. Calculate the velocity of the fling.
+                val velocity = velocityTracker.calculateVelocity().x
+
+                // Calculate where the element eventually settles after the fling animation.
+                val targetOffsetX = decay.calculateTargetValue(offsetX.value, velocity)
+                // The animation should end as soon as it reaches these bounds.
+                offsetX.updateBounds(
+                    lowerBound = 0f,
+                    upperBound = size.width.toFloat()
+
+                )
+                launch {
+                    if (targetOffsetX.absoluteValue <= (size.width)) {
+                        // Not enough velocity; Slide back to the default position.
+                        offsetX.animateTo(targetValue = 0f, initialVelocity = velocity)
+                    } else {
+                        // Enough velocity to slide away the element to the edge.
+                        offsetX.animateDecay(velocity, decay)
+                        // The element was swiped away.
+                        onDismissed()
+                    }
+
+                }
+            }
+        }
+    }
+        // Apply the horizontal offset to the element.
+        .offset {
+            /*if(offsetX.value.roundToInt() < -80 || offsetX.value.roundToInt() > 30) {
+                IntOffset(offsetX.value.roundToInt(), 0)
+            }else{
+                IntOffset(0, 0)
+            }*/
+           IntOffset(offsetX.value.roundToInt(), 0)
+        }
+
+}
+
+
+/*private fun Modifier.swipeToDismiss(
+    onDismissed: () -> Unit
+): Modifier = composed {
+    // This `Animatable` stores the horizontal offset for the element.
+    val offsetX = remember { Animatable(0f) }
+    pointerInput(Unit) {
+        // Used to calculate a settling position of a fling animation.
+        val decay = splineBasedDecay<Float>(this)
+        // Wrap in a coroutine scope to use suspend functions for touch events and animation.
+        coroutineScope {
+            while (true) {
+                // Wait for a touch down event.
+                val pointerId = awaitPointerEventScope { awaitFirstDown().id }
+                // Interrupt any ongoing animation.
+                offsetX.stop()
+                // Prepare for drag events and record velocity of a fling.
+                val velocityTracker = VelocityTracker()
+
+
+                // Wait for drag events.
+                awaitPointerEventScope {
+
+                    var change =
+                        awaitHorizontalTouchSlopOrCancellation(pointerId) { change, over ->
+                            println("awaitHorizontalTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+                            val originalX = offsetX.value
+                            val newValue =
+                                (originalX + change.positionChange().x)
+                            change.consumePositionChange()
+                            //offsetX.value = newValue
+
+                            launch { offsetX.snapTo(newValue) }
+
+                            change.consumeAllChanges()
+
+                        }
+                    horizontalDrag(pointerId) { change ->
+                        // Record the position after offset
+                        val horizontalDragOffset = offsetX.value + change.positionChange().x
+                        launch {
+                            // Overwrite the `Animatable` value while the element is dragged.
+                            offsetX.snapTo(horizontalDragOffset)
+                        }
+                        // Record the velocity of the drag.
+                        velocityTracker.addPosition(change.uptimeMillis, change.position)
+                        // Consume the gesture event, not passed to external
+                        //change.consumeAllChanges()
+                    }
+                }
+                // Dragging finished. Calculate the velocity of the fling.
+                val velocity = velocityTracker.calculateVelocity().x
+                // Calculate where the element eventually settles after the fling animation.
+                val targetOffsetX = decay.calculateTargetValue(offsetX.value, velocity)
+                // The animation should end as soon as it reaches these bounds.
+                offsetX.updateBounds(
+                    lowerBound = -size.width.toFloat(),
+                    upperBound = size.width.toFloat()
+                )
+                launch {
+                    if (targetOffsetX.absoluteValue <= size.width) {
+                        // Not enough velocity; Slide back to the default position.
+                        offsetX.animateTo(targetValue = 0f, initialVelocity = velocity)
+                    } else {
+                        // Enough velocity to slide away the element to the edge.
+                        offsetX.animateDecay(velocity, decay)
+                        // The element was swiped away.
+                        onDismissed()
+                    }
+                }
+            }
+        }
+    }
+        // Apply the horizontal offset to the element.
+        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+}
+*/
+
+private fun Modifier.onItemclick(
+    onDismissed: () -> Unit
+): Modifier = composed {
+    // This `Animatable` stores the horizontal offset for the element.
+    val offsetX = remember { Animatable(0f) }
+    pointerInput(Unit) {
+        // Used to calculate a settling position of a fling animation.
+        val decay = splineBasedDecay<Float>(this)
+        // Wrap in a coroutine scope to use suspend functions for touch events and animation.
+        coroutineScope {
+            forEachGesture {
+                // Wait for a touch down event
+                // Interrupt any ongoing animation.
+                offsetX.stop()
+                // Prepare for drag events and record velocity of a fling.
+                val velocityTracker = VelocityTracker()
+
+
+                // Wait for drag events.
+                awaitPointerEventScope {
+                    val pointerId = awaitFirstDown().id
+                    var change =
+                        awaitTouchSlopOrCancellation(pointerId) { change, over ->
+                            println("awaitTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+                        }
+
+                }
+            }
+        }
+    }
+        // Apply the horizontal offset to the element.
 }
 
 @ExperimentalAnimationApi
@@ -982,6 +1383,8 @@ TaskContentUpdates(
     val onAddgroupSelected: () -> Unit,
     val addGroupSelected: Boolean,
     val onAddNewGroup: (String) -> Unit,
+    val saveNewGroup: (String) -> Unit,
+    val onDeleteTask: (Task) -> Unit,
     val newGroup: String,
     val dueDate: String,
     val groupId: Long,

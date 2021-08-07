@@ -41,6 +41,8 @@ class TaskViewModel @Inject constructor(
     var editTaskItem by mutableStateOf(Task(0,0,0,0,"","", LocalDate.now(),false))
     var addgroupSelected by mutableStateOf(false)
     var newGroup by mutableStateOf("")
+    var deleteTask by mutableStateOf(Task(0,0,0,0,"","", LocalDate.now(),false))
+
 
     var selectedTaskGroup by mutableStateOf(GroupTask(Group(1,"Tasks"), emptyList()))
 
@@ -255,6 +257,30 @@ class TaskViewModel @Inject constructor(
         newGroup = group
     }
 
+    fun saveNewGroup(group: String){
+        var groupId:Long = 0
+        viewModelScope.launch {
+            groupId = hataTaskDatasource.insertGroup(Group(0,group))
+        }
+
+        selectedTaskGroup = GroupTask(Group(groupId,group), emptyList())
+        addgroupSelected = false
+        newGroup = ""
+    }
+
+    fun onDeleteTask(task: Task){
+        //deleteTask = task
+        viewModelScope.launch {
+            hataTaskDatasource.deleteTask(task)
+        }
+    }
+
+    fun deleteTask(){
+        viewModelScope.launch {
+            hataTaskDatasource.deleteTask(deleteTask)
+        }
+    }
+
     fun onSelectedTaskGroup(task: GroupTask){
         selectedTaskGroup = task
     }
@@ -263,7 +289,6 @@ class TaskViewModel @Inject constructor(
         println("onAddgroupSelected >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         addgroupSelected = !addgroupSelected
     }
-
 
     fun getReminder(): HataReminder?{
 
@@ -316,7 +341,7 @@ class TaskViewModel @Inject constructor(
 
     fun getImportantGroupTask(groupId:Long): Flow<ImportantGroupTask> = flow {
         hataReminderDatasource.getImportantGroupTask(groupId).flowOn(Dispatchers.IO).collect {
-            println("getImportantGroupTask >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+it.tasks!!.size + " ID "+it.Group!!.id)
+            //println("getImportantGroupTask >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+it.tasks!!.size + " ID "+it.Group!!.id)
             emit(it)
         }
     }

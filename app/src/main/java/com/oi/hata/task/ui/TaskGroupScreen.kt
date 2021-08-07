@@ -8,14 +8,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,9 +41,6 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
                reminderViewModel: ReminderViewModel,
                onCustomReminderSelect: () -> Unit
 ){
-
-
-
     val grouptasksState = taskViewModel.getGroupTasks().collectAsState(initial = emptyList())
 
     val groupTaskState = taskViewModel.getGroupTask(taskViewModel.selectedTaskGroup.Group!!.name).collectAsState(initial = GroupTask(
@@ -80,7 +74,9 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         addGroupSelected = taskViewModel.addgroupSelected,
         onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
         newGroup = taskViewModel.newGroup,
-        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)}
+        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
+        saveNewGroup = { taskViewModel.saveNewGroup(it) },
+        onDeleteTask = { taskViewModel.onDeleteTask(it)}
     )
 
     val reminderContentUpdates = ReminderContentUpdates(
@@ -121,21 +117,8 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
     )
 
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        drawerContent = {},
-        topBar = {
-        },
-        bottomBar = {
-            /*BottomBar(
-                reminderContentUpdates = reminderContentUpdates,
-                taskContentUpdates = taskContentUpdates,
-                customReminderContentUpdates = customReminderContentUpdates
-            )*/
 
 
-        },
-        content= {
             Box(modifier = Modifier.fillMaxSize()) {
 
                 val groupscroll = rememberScrollState(0)
@@ -174,11 +157,10 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
                 TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,taskContentUpdates = taskContentUpdates)
 
             }
-        }
-    )
 
 }
 
+@ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun Tasks(modifier: Modifier = Modifier,
@@ -226,7 +208,7 @@ fun Groups(
     val offset = maxOffset - groupscroll.value
 
     //val offset = if(taskListState.isScrollInProgress ) (maxOffset - 200) else maxOffset
-
+    var horscroll = rememberScrollState(0)
 
     Column(modifier.fillMaxWidth(),
     ) {
@@ -243,7 +225,9 @@ fun Groups(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.verticalScroll(groupscroll)) {
 
-                StaggeredGrid(modifier = Modifier.animateContentSize(),taskContentUpdates = taskContentUpdates) {
+                StaggeredGrid(modifier = Modifier
+                    .animateContentSize()
+                    .horizontalScroll(horscroll),taskContentUpdates = taskContentUpdates) {
 
                     Crossfade(targetState = taskContentUpdates.selectedTaskGroup,
                         modifier = Modifier.animateContentSize(tween(50)),
