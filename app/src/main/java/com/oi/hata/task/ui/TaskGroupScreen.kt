@@ -47,39 +47,36 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         Group(1,"Tasks"), emptyList()
     ))
 
-    val importantTasksState = taskViewModel.getImportantGroupTask(2).collectAsState(initial = ImportantGroupTask(
-        Group(0,"Important"), emptyList()
-    ))
+    val importantTasksCountState = taskViewModel.getImportantTaskCount().collectAsState(initial = 0)
 
-    val taskContentUpdates = TaskContentUpdates(
-        onTaskSelected = { taskViewModel.onTaskSelected() },
+    /*val taskContentUpdates = TaskContentUpdates(
         onTaskTxtChange = { taskViewModel.onTaskTxtChange(it) },
         onSaveTask = { taskViewModel.saveTask(it) },
-        onAddTaskSelected = { taskViewModel.onTaskSelected() },
         onDueDateSelect = { year, month, day -> taskViewModel.onDueDateSelect(year = year,month = month,day = day) },
         onCloseTask = taskViewModel::resetValues,
-        onTaskItemClick = { taskViewModel.onTaskItemClick(it) },
-        taskselected = taskViewModel.taskselected,
         taskTxt = taskViewModel.taskTxt,
         dueDateSelected = taskViewModel.dueDateSelected,
         dueDate = taskViewModel.reminderDueDate,
         groupId = groupTaskState.value!!.Group!!.id,
-        selectedTaskGroup = taskViewModel.selectedTaskGroup,
-        onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
+    )*/
+
+    val taskContentUpdates = TaskContentUpdates(taskViewModel = taskViewModel,groupId = groupTaskState.value!!.Group!!.id)
+
+    /*val taskListItemContentUpdates = TaskListItemContentUpdates(
+        onTaskItemClick = { taskViewModel.onTaskItemClick(it) },
         onTaskCompleted = { taskViewModel.onTaskCompleted(it) },
         taskcompleted = taskViewModel.taskCompleted,
         taskImportant = taskViewModel.taskImportant,
         onTaskImportant = { taskViewModel.onTaskImportant(it) },
-        importantGroupTask = importantTasksState.value,
-        addGroupSelected = taskViewModel.addgroupSelected,
-        onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
-        newGroup = taskViewModel.newGroup,
-        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
-        saveNewGroup = { taskViewModel.saveNewGroup(it) },
         onDeleteTask = { taskViewModel.onDeleteTask(it)}
-    )
+    )*/
 
-    val reminderContentUpdates = ReminderContentUpdates(
+    val taskListItemContentUpdates = TaskListItemContentUpdates(taskViewModel = taskViewModel,displayToday = true)
+
+
+
+
+    /*val reminderContentUpdates = ReminderContentUpdates(
         onTimeSelect = { hour, minute, am -> reminderViewModel.onTimeSelect(hour,minute,am)},
         onTimeSelected = reminderViewModel::onReminderTimeSelected,
         onReminderSelected = reminderViewModel::onReminderSelected,
@@ -101,9 +98,11 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         timeSelected = reminderViewModel.reminderTimeSelected,
         reminder = taskViewModel.getReminderTxt(),
         reminderTime = reminderViewModel.reminderTime,
-    )
+    )*/
 
-    val customReminderContentUpdates = CustomReminderContentUpdates(
+    val reminderContentUpdates = ReminderContentUpdates(reminderViewModel = reminderViewModel,taskViewModel = taskViewModel)
+
+    /*val customReminderContentUpdates = CustomReminderContentUpdates(
         onCustomReminderSelect = onCustomReminderSelect,
         onCustomReminderInitialize = {
             if(reminderViewModel.reminderOptSelected != ReminderUtil.CUSTOM){
@@ -114,49 +113,73 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         onCompleteReminder = { taskViewModel.saveTaskReminder(reminderViewModel.getReminderValues()) },
         onCloseReminder = taskViewModel::resetReminder,
         customreminder = taskViewModel.getCustomReminderTxt(reminderViewModel.reminderOptSelected),
-    )
+    )*/
+
+    val customReminderContentUpdates = CustomReminderContentUpdates(reminderViewModel = reminderViewModel,
+                                                                    taskViewModel = taskViewModel,
+                                                                    onCustomReminderSelect = onCustomReminderSelect
+                                                                    )
+
+    /*val groupContentUpdates = GroupContentUpdates(
+        selectedTaskGroup = taskViewModel.selectedTaskGroup,
+        onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
+        importantTasksCount = importantTasksCountState.value,
+        addGroupSelected = taskViewModel.addgroupSelected,
+        onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
+        newGroup = taskViewModel.newGroup,
+        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
+        saveNewGroup = { taskViewModel.saveNewGroup(it) },
+    )*/
+
+    val groupContentUpdates = GroupContentUpdates(taskViewModel = taskViewModel,
+                                                    importantTasksCount = importantTasksCountState.value)
 
 
 
 
-            Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-                val groupscroll = rememberScrollState(0)
-                val taskscroll = rememberScrollState(0)
+            val groupscroll = rememberScrollState(0)
+            val taskscroll = rememberScrollState(0)
 
-                Groups(
-                    modifier = Modifier,
-                    selectedGroup = groupTaskState.value,
-                    groupTasks = grouptasksState.value,
-                    groupscroll = groupscroll,
-                    taskContentUpdates = taskContentUpdates
+            Groups(
+                modifier = Modifier,
+                selectedGroup = groupTaskState.value,
+                groupTasks = grouptasksState.value,
+                groupscroll = groupscroll,
+                taskselected = taskViewModel.taskselected,
+                groupContentUpdates = groupContentUpdates
+            )
+
+            AnimatedVisibility(
+                visible = !taskViewModel.taskselected,
+                Modifier.align(Alignment.BottomCenter)
+            ) {
+                Tasks(
+                    groupTask = groupTaskState.value,
+                    groupscroll = groupscroll.value,
+                    taskContentUpdates = taskContentUpdates,
+                    taskListItemContentUpdates = taskListItemContentUpdates,
+                    taskscroll = taskscroll,
+                    onTaskSelected = { taskViewModel.onTaskSelected() }
                 )
-
-                AnimatedVisibility(
-                    visible = !taskContentUpdates.taskselected,
-                    Modifier.align(Alignment.BottomCenter)
-                ) {
-                    Tasks(
-                        groupTask = groupTaskState.value,
-                        groupscroll = groupscroll.value,
-                        taskContentUpdates = taskContentUpdates,
-                        taskscroll = taskscroll
-                    )
-                }
-                AnimatedVisibility(
-                    visible = taskContentUpdates.taskselected,
-                    Modifier.align(Alignment.BottomCenter)
-                    )
-                {
-                    BottomBar(
-                        reminderContentUpdates = reminderContentUpdates,
-                        taskContentUpdates = taskContentUpdates,
-                        customReminderContentUpdates = customReminderContentUpdates
-                    )
-                }
-                TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,taskContentUpdates = taskContentUpdates)
-
             }
+            AnimatedVisibility(
+                visible = taskViewModel.taskselected,
+                Modifier.align(Alignment.BottomCenter)
+                )
+            {
+                ReminderBar(
+                    reminderContentUpdates = reminderContentUpdates,
+                    customReminderContentUpdates = customReminderContentUpdates,
+                    taskContentUpdates = taskContentUpdates,
+                    onTaskSelected = { taskViewModel.onTaskSelected() },
+                    taskselected = taskViewModel.taskselected
+                )
+            }
+            TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,groupContentUpdates = groupContentUpdates)
+
+        }
 
 }
 
@@ -165,6 +188,8 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 @Composable
 fun Tasks(modifier: Modifier = Modifier,
           taskContentUpdates: TaskContentUpdates,
+          taskListItemContentUpdates: TaskListItemContentUpdates,
+          onTaskSelected: () -> Unit,
           groupTask: GroupTask?,
           groupscroll: Int,
           taskscroll: ScrollState,
@@ -181,7 +206,8 @@ fun Tasks(modifier: Modifier = Modifier,
     TaskList(
         modifier = modifier,
         groupTask = groupTask,
-        taskContentUpdates = taskContentUpdates,
+        onTaskSelected = onTaskSelected,
+        taskListItemContentUpdates = taskListItemContentUpdates,
         height = height,
         groupscroll = groupscroll,
         taskscroll = taskscroll,
@@ -191,8 +217,6 @@ fun Tasks(modifier: Modifier = Modifier,
 
 }
 
-
-
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @ExperimentalMaterialApi
 @Composable
@@ -201,13 +225,11 @@ fun Groups(
     groupTasks: List<GroupTask>,
     selectedGroup: GroupTask,
     groupscroll:ScrollState,
-    taskContentUpdates: TaskContentUpdates,
-){
-    val maxOffset = with(LocalDensity.current) { MinTopOffset.toPx() }
-    val height = with(LocalDensity.current){ (500.dp + groupscroll.value.toDp()) }
-    val offset = maxOffset - groupscroll.value
+    taskselected:Boolean,
+    groupContentUpdates: GroupContentUpdates,
 
-    //val offset = if(taskListState.isScrollInProgress ) (maxOffset - 200) else maxOffset
+){
+
     var horscroll = rememberScrollState(0)
 
     Column(modifier.fillMaxWidth(),
@@ -223,13 +245,13 @@ fun Groups(
             .fillMaxWidth(),color = MaterialTheme.colors.background) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.verticalScroll(groupscroll)) {
+                modifier = Modifier.verticalScroll(groupscroll, enabled = !taskselected)) {
 
                 StaggeredGrid(modifier = Modifier
                     .animateContentSize()
-                    .horizontalScroll(horscroll),taskContentUpdates = taskContentUpdates) {
+                    .horizontalScroll(horscroll),) {
 
-                    Crossfade(targetState = taskContentUpdates.selectedTaskGroup,
+                    Crossfade(targetState = groupContentUpdates.selectedTaskGroup,
                         modifier = Modifier.animateContentSize(tween(50)),
                         animationSpec = keyframes {
                             durationMillis = 700
@@ -238,17 +260,17 @@ fun Groups(
                         }
                     ) {
                         groupTasks.forEach { task ->
-                            if (taskContentUpdates.selectedTaskGroup.Group!!.name.equals(task.Group!!.name)) {
-                                TaskGroup(groupTask = task, taskContentUpdates = taskContentUpdates,groupscroll = groupscroll)
+                            if (groupContentUpdates.selectedTaskGroup.Group!!.name.equals(task.Group!!.name)) {
+                                TaskGroup(groupTask = task, groupContentUpdates = groupContentUpdates,groupscroll = groupscroll)
                             }
                         }
                     }
 
                     groupTasks.forEach {
-                        if(!taskContentUpdates.selectedTaskGroup.Group!!.name.equals(it.Group!!.name)){
+                        if(!groupContentUpdates.selectedTaskGroup.Group!!.name.equals(it.Group!!.name)){
                             TaskGroup(
                                 groupTask = it,
-                                taskContentUpdates = taskContentUpdates,
+                                groupContentUpdates = groupContentUpdates,
                                 groupscroll = groupscroll
                             )
                         }

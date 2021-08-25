@@ -94,8 +94,6 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
             onCloseCustomReminder = onCloseCustomReminder,
             shape = shape)
 
-
-
     }
 
     //Log.d("CustomReminderPicker >>","******************" + reminderViewModel.reminderTxt)
@@ -354,7 +352,7 @@ private fun Dates(selectedDates: List<Int>,
         shape = shape
     ) {
         Column() {
-            Header("Dates",color = colorResource(id = R.color.may))
+            Header("Dates",color = colorResource(id = R.color.sep))
             Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 LayoutContainer(
                     modifier = modifier
@@ -419,18 +417,17 @@ private fun WeekNums(selectedWeekNums: List<Int>,
 private fun Month(name: String, color: Color, onMonthSelect: (String) -> Unit,selectedMonths: List<String>){
 
     var mthSurfaceModifier: Modifier = Modifier
-        .padding(4.dp)
         .size(width = CELL_SIZE, height = CELL_SIZE)
 
     MonthSurface(
-        color = MaterialTheme.colors.surface,
+        color = colorResource(id = R.color.customremsurface),
         modifier = mthSurfaceModifier,
         name = name,
         onMonthSelect = onMonthSelect,
         selectedMonths = selectedMonths
     ) {
 
-            Text(
+            Text(modifier = Modifier.padding(4.dp),
                 textAlign = TextAlign.Center,
                 text = name,
                 color = Color.White,
@@ -450,7 +447,7 @@ private fun Date(name: Int, color: Color,
 
     DateSurface(
         date = name,
-        color = MaterialTheme.colors.surface,
+        color = colorResource(id = R.color.customremsurface),
         modifier = dteSurfaceModifier,
         onDateSelect = onDateSelect,
         selectedDates = selectedDates
@@ -470,7 +467,7 @@ private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit, sel
     var weekSurfaceModifier: Modifier = Modifier.size(width = WEEK_CELL_SIZE, height = WEEK_CELL_SIZE)
 
     WeekSurface(
-        color = MaterialTheme.colors.surface,
+        color = colorResource(id = R.color.customremsurface),
         modifier = weekSurfaceModifier,
         onWeekSelect = onWeekSelect,
         selectedWeeks = selectedWeeks,
@@ -585,24 +582,28 @@ private fun MonthSurface(color: Color,
 ){
     val monthTransitionState = monthTransition(month = name,selectedMonths = selectedMonths)
 
-    Surface(
-        modifier = modifier.padding(4.dp),
-        shape = RoundedCornerShape(50.dp),
-        elevation = 1.dp,
-        color  = colorResource(id = R.color.header1),
-    ) {
-        Surface(
-            elevation = 1.dp,
-            shape = RoundedCornerShape(60.dp,60.dp,monthTransitionState.cornerRadius,60.dp),
-            onClick = { onMonthSelect(name) },
-        ) {
 
+    Box(contentAlignment = Alignment.Center){
+        Surface( modifier = modifier.padding(4.dp),
+            color  = colorResource(id = R.color.header1),
+            shape= RoundedCornerShape(8.dp),
+            elevation = 1.dp) {
+
+        }
+        Surface(modifier = modifier.padding(4.dp),
+            onClick = { onMonthSelect(name) },
+            color = color,
+            shape = RoundedCornerShape(4.dp, monthTransitionState.cornerRadius,4.dp,4.dp),
+            elevation = 1.dp
+        ) {
             Column(
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 content()
             }
         }
+
     }
 }
 
@@ -652,7 +653,7 @@ private fun DateSurface( color: Color,
 ){
     val dateTransitionState = dateTransition(date = date,selectedDates = selectedDates)
 
-    Surface( modifier = modifier.padding(4.dp),
+    /*Surface( modifier = modifier.padding(4.dp),
         color  = colorResource(id = R.color.may),
         shape= RoundedCornerShape(8.dp),
         elevation = 1.dp) {
@@ -670,6 +671,29 @@ private fun DateSurface( color: Color,
                 content()
             }
         }
+    }*/
+
+    Box(contentAlignment = Alignment.Center){
+        Surface( modifier = modifier.padding(4.dp),
+            color  = colorResource(id = R.color.sep),
+            shape= RoundedCornerShape(8.dp),
+            elevation = 1.dp) {
+
+        }
+        Surface(modifier = modifier.padding(4.dp),
+            onClick = { onDateSelect(date) },
+            color = color,
+            shape = RoundedCornerShape(4.dp, dateTransitionState.cornerRadius,4.dp,4.dp),
+            elevation = 1.dp
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                content()
+            }
+        }
+
     }
 
 }
@@ -707,12 +731,14 @@ private fun WeekSurface(color: Color,
 ){
     val weekTransitionState = weekTransition(week = name,selectedWeeks = selectedWeeks)
 
-    Surface( modifier = modifier.padding(4.dp),
-        color  = colorResource(id = R.color.header2),
-        shape= RoundedCornerShape(8.dp),
-        elevation = 1.dp) {
+    Box(contentAlignment = Alignment.Center){
+        Surface( modifier = modifier.padding(4.dp),
+            color  = colorResource(id = R.color.header2),
+            shape= RoundedCornerShape(8.dp),
+            elevation = 1.dp) {
 
-        Surface(
+        }
+        Surface(modifier = modifier.padding(4.dp),
             onClick = { onWeekSelect(name) },
             color = color,
             shape = RoundedCornerShape(4.dp, weekTransitionState.cornerRadius,4.dp,4.dp),
@@ -725,6 +751,7 @@ private fun WeekSurface(color: Color,
                 content()
             }
         }
+
     }
 
 }
@@ -884,9 +911,8 @@ fun ReminderOptions(
                     onCustomReminderSelect = customReminderContentUpdates.onCustomReminderSelect,
                     reminderOptSelected = reminderContentUpdates.reminderOptSelected,
                     title = stringResource(id = R.string.custom),
-                    onCustomReminderInitialize = {
-                                                customReminderContentUpdates.onCustomReminderInitialize
-                                            }
+                    onCustomReminderInit = customReminderContentUpdates.onCustomReminderInit
+
                     )
                 AnimatedVisibility(visible = customReminderContentUpdates.customreminder.isNotEmpty()) {
                     Text(
@@ -970,6 +996,7 @@ private val CELL_SIZE = 48.dp
 private val WEEK_CELL_SIZE = 48.dp
 private val WEEK_NUM_CELL_SIZE = 48.dp
 private val MONTH_CORNER = 60.dp
+public val CALENDAR_DAY_COL_SIZE = 56.dp
 
 enum class CalMonths {
     Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec

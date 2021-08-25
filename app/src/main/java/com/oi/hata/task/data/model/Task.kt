@@ -33,6 +33,9 @@ data class Task(
     @ColumnInfo(name = "important_group_id") var importantGroupId: Long,
     @ColumnInfo(name = "task") var task: String,
     @ColumnInfo(name = "tag") var tag: String,
-    @ColumnInfo(name = "task_due_date") var taskDueDate: LocalDate,
-    @ColumnInfo(name = "completed") var completed: Boolean
+    @ColumnInfo(name = "task_due_date") var taskDueDate: Int,
+    @ColumnInfo(name = "task_due_month") var taskDueMonth: Int,
+    @ColumnInfo(name = "task_due_year") var taskDueYear: Int,
+    @ColumnInfo(name = "completed") var completed: Boolean,
+    @ColumnInfo(name = "today_task") var todaytask: Boolean
     )

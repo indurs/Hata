@@ -88,8 +88,8 @@ fun monthTransition(month: String,selectedMonths: List<String>): MonthTransition
 
     val corerRadius = transition.animateDp { state ->
         when (state) {
-            SelectionState.Unselected -> 60.dp
-            SelectionState.Selected -> 5.dp
+            SelectionState.Unselected -> 4.dp
+            SelectionState.Selected -> 24.dp
         }
     }
 
@@ -112,7 +112,7 @@ fun weekTransition(week:String, selectedWeeks: List<String>): WeekTransition {
     )
     val corerRadius = transition.animateDp { state ->
         when (state) {
-            SelectionState.Unselected -> 8.dp
+            SelectionState.Unselected -> 4.dp
             SelectionState.Selected -> 24.dp
         }
     }

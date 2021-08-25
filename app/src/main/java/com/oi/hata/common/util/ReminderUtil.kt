@@ -11,6 +11,45 @@ object ReminderUtil {
     var monthsStr = mapOf(1 to "Jan", 2 to "Feb", 3 to "Mar", 4 to "Apr", 5 to "May", 6 to "Jun", 7 to "Jul", 8 to "Aug", 9 to "Sep", 10 to "Oct", 11 to "Nov", 12 to "Dec")
 
 
+    fun getMonthCalendarScreen(month: Int): ArrayList<ArrayList<Int>>
+    {
+
+        var calendar = GregorianCalendar()
+        var date = calendar.get(Calendar.DAY_OF_MONTH)
+
+        var year = calendar.get(Calendar.YEAR)
+
+
+        var d = 0
+        val datesByDay: ArrayList<ArrayList<Int>> = ArrayList<ArrayList<Int>>()
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+        datesByDay.add(ArrayList())
+
+        if(month == 2 && isLeapYear(year))
+            days[month] = 29
+
+        var weekDay = 0
+        var weekName = ""
+        for(i in 1 .. days[month]){
+            weekDay = weekDay(month,i,year)
+            if(i == 1){
+                if(weekDay > 0){
+                    for(j in 0 until weekDay){
+                        datesByDay[j].add(0)
+                    }
+                }
+            }
+            println(WEEKNAMES.values()[weekDay].toString() +" "+WEEKNAMES.values()[weekDay].ordinal)
+            datesByDay[WEEKNAMES.values()[weekDay].ordinal]!!.add(i)
+        }
+        return datesByDay
+    }
+
     fun getMonthCalendar(month: Int): HashMap<String, ArrayList<Int>> {
 
         var calendar = GregorianCalendar()

@@ -22,7 +22,9 @@ import androidx.navigation.navigation
 import com.oi.hata.R
 import com.oi.hata.common.ui.reminder.CustomReminderPicker
 import com.oi.hata.common.reminder.ui.ReminderViewModel
+import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.ui.TaskGroups
+import java.util.*
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -41,12 +43,22 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
         composable(HataAppDestinations.HOME_ROUTE) {
             //val reminderViewModel =
                 //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(route = HataAppDestinations.HOME_ROUTE))
+
+            //val reminderViewModel =
+                //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(HataAppDestinations.HOME_ROUTE))
+
+            var calendar = GregorianCalendar()
+
             val reminderViewModel = hiltViewModel<ReminderViewModel>()
             val homeViewModel = hiltViewModel<HomeViewModel>()
             val taskViewModel = hiltViewModel<TaskViewModel>()
-            HomeScreen(
-                homeViewModel = homeViewModel,
-                onTaskTabSelected = actions.onTaskTabSelected
+                HomeScreen(
+                    taskViewModel = taskViewModel,
+                    homeViewModel = homeViewModel,
+                    reminderViewModel = reminderViewModel,
+                    onTaskTabSelected = actions.onTaskTabSelected,
+                    onCustomReminderSelect = actions.onClickReminder,
+                    monthCalendar = ReminderUtil.getMonthCalendarScreen(calendar.get(Calendar.MONTH)+2)
             )
 
         }
@@ -71,8 +83,9 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
         }
 
         composable(HataAppDestinations.GROUP_ROUTE){
-            val taskViewModel = hiltViewModel<TaskViewModel>()
             val reminderViewModel = hiltViewModel<ReminderViewModel>()
+
+            val taskViewModel = hiltViewModel<TaskViewModel>()
             TaskGroups(
                 taskViewModel = taskViewModel,
                 reminderViewModel = reminderViewModel,

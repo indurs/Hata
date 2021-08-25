@@ -28,6 +28,7 @@
     <color name="header1">#02d5ee</color>
     <color name="header2">#ff49b6ff</color>
     <color name="header3">#ee9002</color>
+    <color  name = "customremsurface">#393945</color>
 
     <color name="headerBackground">#1b1c20</color>
     <color name="datebackground">#3b3d41</color>

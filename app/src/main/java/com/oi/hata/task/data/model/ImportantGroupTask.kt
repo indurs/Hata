@@ -3,7 +3,8 @@ package com.oi.hata.task.data.model
 import androidx.room.Embedded
 import androidx.room.Relation
 
-data class ImportantGroupTask(
+data class
+ImportantGroupTask(
     @Embedded
     val Group: Group?,
     @Relation(

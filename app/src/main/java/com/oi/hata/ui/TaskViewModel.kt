@@ -11,6 +11,7 @@ import com.oi.hata.common.reminder.data.local.model.HataReminder
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.HataTaskDatasource
 import com.oi.hata.task.data.model.*
+import com.oi.hata.task.ui.TaskListItemState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,15 +40,18 @@ class TaskViewModel @Inject constructor(
     var taskselected by mutableStateOf(false)
     var taskCompleted by mutableStateOf<List<Long>>(emptyList())
     var taskImportant by mutableStateOf<List<Long>>(emptyList())
-    var editTaskItem by mutableStateOf(Task(0,0,0,0,"","", LocalDate.now(),false))
+    var todaysTasks by mutableStateOf<List<Long>>(emptyList())
+
     var addgroupSelected by mutableStateOf(false)
     var newGroup by mutableStateOf("")
-    var deleteTask by mutableStateOf(Task(0,0,0,0,"","", LocalDate.now(),false))
+    var deleteTask by mutableStateOf(Task(0,0,0,0,"","", 0,0,0,false,false))
 
 
     var selectedTaskGroup by mutableStateOf(GroupTask(Group(1,"Tasks"), emptyList()))
 
-    lateinit var dueDate: LocalDate
+    var dueDate: Int = 0
+    var dueMonth: Int = 0
+    var dueYear: Int = 0
 
     var taskUIState: TaskUIState = TaskUIState(null,null)
 
@@ -75,7 +80,9 @@ class TaskViewModel @Inject constructor(
         var localDateTime = LocalDateTime.of(year,month,day,0,0)
 
         //var offsetDateTime = OffsetDateTime.now()
-        dueDate = LocalDate.parse(reminderDueDate, DateTimeFormatter.ISO_LOCAL_DATE)
+        dueDate = day
+        dueMonth = month
+        dueYear = year
         dueDateSelected = true
     }
 
@@ -88,9 +95,24 @@ class TaskViewModel @Inject constructor(
                     hataReminder = taskUIState.hataReminder!!, task = taskUIState.task!!
                 )
             }else{
+                var impGroupid: Long
+                if(groupId == 2L)
+                    impGroupid = 2
+                else
+                    impGroupid = 22
+
                 hataReminderDatasource.insertTaskReminder(
                     hataReminder = taskUIState.hataReminder!!,
-                    task = Task(task = taskTxt,taskDueDate = dueDate,tag="",taskReminderId = 0,taskGroupId = groupId,completed = false,importantGroupId = groupId)
+                    task = Task(task = taskTxt,
+                        taskDueDate = dueDate,
+                        taskDueMonth = dueMonth,
+                        taskDueYear = dueYear,
+                        tag="",
+                        taskReminderId = 0,
+                        taskGroupId = groupId,
+                        completed = false,
+                        importantGroupId = impGroupid,
+                        todaytask = false)
                 )
             }
 
@@ -100,12 +122,10 @@ class TaskViewModel @Inject constructor(
     }
 
     fun saveTaskReminder(hataReminder: HataReminder){
-        println("saveTaskReminder>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+hataReminder.reminderOption)
         taskUIState.hataReminder = null
         if(hataReminder.reminderOption != ReminderUtil.CUSTOM)
             taskUIState.hataReminder = hataReminder
         else {
-            println(" saveTaskReminder TIME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+hataReminderValues!!.reminderTime)
             taskUIState.hataReminder = hataReminderValues
         }
     }
@@ -113,8 +133,6 @@ class TaskViewModel @Inject constructor(
 
 
     fun resetValues(){
-        println("resetValues >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
         hataReminderValues = null
         taskUIState.hataReminder = null
         taskUIState.task = null
@@ -125,19 +143,16 @@ class TaskViewModel @Inject constructor(
     }
 
     fun resetTaskReminder(){
-        println("resetTaskReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         hataReminderValues = null
         taskUIState.hataReminder = null
     }
 
     fun resetReminder(){
-        println("resetReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        println("resetReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         hataReminderValues = null
     }
 
     fun setReminder(hataReminder: HataReminder){
-        println("setReminder "+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+hataReminder.reminderMonths)
-
         hataReminderValues = hataReminder
     }
 
@@ -163,16 +178,18 @@ class TaskViewModel @Inject constructor(
             hataReminderDatasource.getTask(taskId).flowOn(Dispatchers.IO).collect {
                 taskUIState = it
                 taskselected = true
-                reminderDueDate = it.task!!.taskDueDate.toString()
+                reminderDueDate = it.task!!.taskDueDate.toString() + "-" + it.task!!.taskDueMonth.toString() + it.task!!.taskDueYear.toString()
                 dueDate = it.task!!.taskDueDate
+                dueMonth = it.task!!.taskDueMonth
+                dueYear = it.task!!.taskDueYear
                 taskTxt = it.task!!.task
                 dueDateSelected = true
             }
         }
-
     }
 
     fun onTaskSelected(){
+        println("onTaskSelected >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         taskselected = !taskselected
     }
 
@@ -188,6 +205,15 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             updateTaskAsImportant(task)
             setImportantTask(task)
+        }
+    }
+
+    fun onTaskSetForToday(task: Task){
+        println("onTaskSetForToday>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+  task.todaytask)
+
+        viewModelScope.launch {
+            updateTaskAsToday(task)
+            setTaskToToday(task)
         }
     }
 
@@ -207,11 +233,41 @@ class TaskViewModel @Inject constructor(
     }
 
     suspend fun updateTaskAsImportant(task: Task){
+
         var importantGroupId: Long
-        if(task.importantGroupId == 2L){
-            importantGroupId = task.taskGroupId
+
+        if(task.taskGroupId == 2L){
+            withContext(Dispatchers.IO){
+                hataTaskDatasource.deleteTask(task)
+            }
         }else{
-            importantGroupId = 2L
+            if(task.importantGroupId == 2L){
+                importantGroupId = 22
+            }else{
+                importantGroupId = 2L
+            }
+            withContext(Dispatchers.IO){
+                hataTaskDatasource.updateTask(task = Task(id = task.id,
+                    taskReminderId = task.taskReminderId,
+                    taskGroupId = task.taskGroupId,
+                    importantGroupId = importantGroupId,
+                    task=task.task,
+                    tag = "",
+                    taskDueDate = task.taskDueDate,
+                    taskDueMonth = task.taskDueMonth,
+                    taskDueYear = task.taskDueYear,
+                    completed = task.completed,
+                    todaytask = task.todaytask
+                ))
+            }
+        }
+    }
+
+    suspend fun updateTaskAsCompleted(task: Task){
+        var importantGroupId = 2L
+
+        if(task.taskGroupId != 2L){
+            importantGroupId = 22
         }
         withContext(Dispatchers.IO){
             hataTaskDatasource.updateTask(task = Task(id = task.id,
@@ -221,12 +277,16 @@ class TaskViewModel @Inject constructor(
                 task=task.task,
                 tag = "",
                 taskDueDate = task.taskDueDate,
-                completed = task.completed
+                taskDueMonth = task.taskDueMonth,
+                taskDueYear = task.taskDueYear,
+                completed = !task.completed,
+                todaytask = task.todaytask
             ))
         }
     }
 
-    suspend fun updateTaskAsCompleted(task: Task){
+    suspend fun updateTaskAsToday(task: Task){
+
         withContext(Dispatchers.IO){
             hataTaskDatasource.updateTask(task = Task(id = task.id,
                 taskReminderId = task.taskReminderId,
@@ -235,7 +295,10 @@ class TaskViewModel @Inject constructor(
                 task=task.task,
                 tag = "",
                 taskDueDate = task.taskDueDate,
-                completed = !task.completed
+                taskDueMonth = task.taskDueMonth,
+                taskDueYear = task.taskDueYear,
+                completed = task.completed,
+                todaytask = !task.todaytask
             ))
         }
     }
@@ -251,6 +314,21 @@ class TaskViewModel @Inject constructor(
         task.completed = true
 
         taskCompleted = tasks
+    }
+
+    suspend fun setTaskToToday(task: Task){
+        withContext(Dispatchers.IO){
+            var tasks = mutableListOf<Long>()
+
+            tasks.addAll(todaysTasks)
+
+            if(tasks.contains(task.id))
+                tasks.remove(task.id)
+            else
+                tasks.add(task.id)
+
+            todaysTasks = tasks
+        }
     }
 
     fun OnAddNewGroup(group: String){
@@ -326,26 +404,21 @@ class TaskViewModel @Inject constructor(
 
     fun getGroupTasks(): Flow<List<GroupTask>> = flow {
         hataReminderDatasource.getGroupTasks().flowOn(Dispatchers.IO).collect {
-            println("no of gropus >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+it.size)
-
             emit(it)
         }
     }
 
     fun getGroupTask(groupName:String): Flow<GroupTask> = flow {
-        hataReminderDatasource.getGroupTask(groupName).flowOn(Dispatchers.IO).collect {
-            println("getGroupTask >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+it.tasks!!.size)
+
+        hataReminderDatasource.getTasksForGroup(groupName).flowOn(Dispatchers.IO).collect {
+            //println("getGroupTask >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ it.Group!!.name + " " +it.tasks!!.size + " group "+ it.tasks[0].taskGroupId +" igropu id "+it.tasks[0].importantGroupId)
             emit(it)
         }
     }
 
-    fun getImportantGroupTask(groupId:Long): Flow<ImportantGroupTask> = flow {
-        hataReminderDatasource.getImportantGroupTask(groupId).flowOn(Dispatchers.IO).collect {
-            //println("getImportantGroupTask >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+it.tasks!!.size + " ID "+it.Group!!.id)
-            emit(it)
-        }
-    }
+    fun getImportantTaskCount(): Flow<Int> = hataReminderDatasource.getImportantTasksCount()
 
     val IMPORTANT_GROUP_ID: Long = 2
 
 }
+

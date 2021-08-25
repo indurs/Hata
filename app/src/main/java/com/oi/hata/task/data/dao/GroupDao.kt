@@ -5,7 +5,12 @@ import com.oi.hata.task.data.model.Group
 import com.oi.hata.task.data.model.GroupTask
 import com.oi.hata.task.data.model.ImportantGroupTask
 import com.oi.hata.task.data.model.Task
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 
 @Dao
 interface GroupDao {
@@ -28,17 +33,67 @@ interface GroupDao {
 
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query("SELECT * FROM taskgroup WHERE group_id = :groupId ")
-    fun getImportantGroup(groupId: Long): Flow<ImportantGroupTask>
+    @Query("SELECT * FROM task where task.important_group_id = 2 and task_group_id != 2")
+    fun getImportantTasks(): List<Task>
+
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query("SELECT Count(*) FROM task where task.important_group_id = 2 and task_group_id != 2")
+    fun getImportantTasksCount(): Flow<Int>
 
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM taskgroup WHERE name = :groupName ")
-    fun getTaskGroup(groupName: String): Flow<GroupTask>
+    fun getTaskGroup(groupName: String): GroupTask
 
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM taskgroup")
     fun getTaskGroups(): Flow<List<GroupTask>>
+
+    @Transaction
+    suspend fun getTasksForGroup(groupName: String) = flow<GroupTask>{
+
+        var groupTask: GroupTask
+        var tasks = mutableListOf<Task>()
+
+        if(groupName == "Important"){
+            println("getTasksForGroup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+groupName)
+            tasks.clear()
+            coroutineScope {
+                launch(Dispatchers.IO){
+                    var importantTasks = getImportantTasks()
+
+                    importantTasks.let {
+                        if (it != null) {
+                            tasks.addAll(it)
+                        }
+                    }
+                }
+
+                getTaskGroup(groupName).tasks.let {
+                    if (it != null) {
+                        tasks.addAll(it)
+                    }
+                }
+
+                groupTask = GroupTask(Group(2,"Important"),tasks)
+
+            }
+
+
+        }else{
+            var grpTask = getTaskGroup(groupName)
+            grpTask.tasks.let {
+                if (it != null) {
+                    tasks.addAll(it)
+                }
+            }
+            groupTask = GroupTask(Group(grpTask.Group!!.id,groupName),tasks)
+        }
+
+        emit(groupTask)
+    }
+
 
 }

@@ -14,6 +14,7 @@ import com.oi.hata.task.data.model.TaskUIState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,7 +64,7 @@ class HataReminderDatasource @Inject constructor(private val hataDatabase: HataD
     }
 
 
-    suspend fun getTodaysReminders(): Flow<List<Task>> =  reminderDao.getTodaysReminders()
+    suspend fun getReminders(whenType: String): Flow<List<Task>> =  reminderDao.getReminders(whenType)
 
     suspend fun getTask(taskId: Long): Flow<TaskUIState> = flow{
 
@@ -84,9 +85,11 @@ class HataReminderDatasource @Inject constructor(private val hataDatabase: HataD
 
     }
 
-    fun getGroupTask(groupName:String): Flow<GroupTask> = groupDao.getTaskGroup(groupName)
+    //fun getGroupTask(groupName:String): Flow<GroupTask> = groupDao.getTaskGroup(groupName)
 
-    fun getImportantGroupTask(groupId:Long): Flow<ImportantGroupTask> = groupDao.getImportantGroup(groupId)
+    suspend fun getTasksForGroup(groupName: String): Flow<GroupTask> = groupDao.getTasksForGroup(groupName)
+
+    fun getImportantTasksCount(): Flow<Int> = groupDao.getImportantTasksCount()
 
     fun getGroupTasks(): Flow<List<GroupTask>> = groupDao.getTaskGroups()
 

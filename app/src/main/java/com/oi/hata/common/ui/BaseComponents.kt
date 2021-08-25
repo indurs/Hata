@@ -145,13 +145,14 @@ fun HataTaskReminderCustomButton(
     onCustomReminderSelect: () -> Unit,
     reminderOptSelected: String,
     title:String,
-    onCustomReminderInitialize: () -> Unit
+    onCustomReminderInit: () -> Unit
     ){
     Surface(
         shape = MaterialTheme.shapes.small,
         color = color,
         onClick = {
-            onCustomReminderInitialize()
+            println("CUSTOM CLICK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*************************************************** >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            onCustomReminderInit()
             onCustomReminderSelect()
         },
         modifier = Modifier

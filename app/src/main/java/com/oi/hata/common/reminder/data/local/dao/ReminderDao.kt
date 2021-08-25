@@ -6,11 +6,16 @@ import androidx.room.*
 import com.oi.hata.common.reminder.data.local.model.*
 import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
+import com.oi.hata.task.data.model.CalendarColumn
+import com.oi.hata.task.data.model.CalendarTaskItem
 import com.oi.hata.task.data.model.Task
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
@@ -181,28 +186,49 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
     fun getAllReminders(whenSelectType: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType AND reminder_date = :date """)
+    @Query(""" SELECT task_id,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    fun getAllRemindersCalendar(whenSelectType: String): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType AND reminder_date = :date """)
     fun getRemindersforDate(whenSelectType: String,date: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    @Query(""" SELECT task_id,reminder_date,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType """)
+    fun getRemindersforDate(whenSelectType: String): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
     fun getRemindersforMonth(whenSelectType: String,month: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
+    @Query(""" SELECT task_id,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    fun getRemindersforMonthCalendar(whenSelectType: String,month: String): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id 
                         INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_date = :date AND reminder_month = :month """)
@@ -212,7 +238,17 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
+    @Query(""" SELECT task_id,reminder_date,important_group_id,completed,task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        INNER JOIN reminder_month ON reminder_id = month_reminder_id 
+                        INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    fun getRemindersforMonthDate(whenSelectType: String,month: String,): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_week = :week """)
     fun getRemindersforWeek(whenSelectType: String,week: String): List<Task>
@@ -221,7 +257,16 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    fun getRemindersforWeek(whenSelectType: String,): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
                         INNER JOIN reminder_weeknum ON week_reminder_id
@@ -233,7 +278,18 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id 
+                        INNER JOIN reminder_weeknum ON week_reminder_id
+                        WHERE reminder_custom_when_type = :whenSelectType """)
+    fun getRemindersforWeekWeekNum(whenSelectType: String,): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id
@@ -247,7 +303,20 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,important_group_id,completed FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        INNER JOIN reminder_month ON reminder_id = month_reminder_id
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id
+                        WHERE reminder_custom_when_type = :whenSelectType 
+                        AND reminder_month = :month
+                        """)
+    fun getRemindersforMonthWeek(whenSelectType: String,month: String,): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
@@ -262,11 +331,48 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    suspend fun getTodaysReminders(): Flow<List<Task>> = flow{
+    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        INNER JOIN reminder_month ON reminder_id = month_reminder_id
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id 
+                        INNER JOIN reminder_weeknum ON week_reminder_id
+                        WHERE reminder_custom_when_type = :whenSelectType 
+                        AND reminder_month = :month
+                         """)
+    fun getRemindersforMonthWeekWeekNum(whenSelectType: String,month: String,): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        WHERE today_task = :todayTask """)
+    fun getTodayTasks(todayTask: Boolean): List<Task>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+                        INNER JOIN task ON reminder_id = task_reminder_id
+                        WHERE task_due_month = :month AND task_id NOT IN  (:taskIds)
+                         """)
+    fun getDueTasks(month: Int,taskIds: List<Long>): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    suspend fun getReminders(whenType: String): Flow<List<Task>> = flow{
 
         var todaysReminders = mutableListOf<Task>()
 
         var calendar = GregorianCalendar()
+
+        if(whenType == ReminderUtil.TOMORROW)
+            calendar.add(Calendar.DAY_OF_MONTH,1)
+
         var date = calendar.get(Calendar.DAY_OF_MONTH)
         var month = ReminderUtil.monthsStr[calendar.get(Calendar.MONTH)+1]
 
@@ -296,6 +402,7 @@ interface ReminderDao {
         todaysReminders.addAll( getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
         todaysReminders.addAll(getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
 
+
         for(i in 0 until weekDays!!.size){
             //println("week day "+weekDays[i] )
             if(weekDays[i] == date){
@@ -309,6 +416,175 @@ interface ReminderDao {
         println("reminders size " + todaysReminders.size)
 
         emit(todaysReminders)
+    }
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    suspend fun getTasksForCalendarDate(date: Int,month: Int): Flow<List<Task>> = flow{
+
+        var todaysReminders = mutableListOf<Task>()
+
+        var calendar = GregorianCalendar()
+
+        var month = ReminderUtil.monthsStr[calendar.get(Calendar.MONTH)+1]
+
+        var monthCalendar = ReminderUtil.getMonthCalendar(calendar.get(Calendar.MONTH)+1)
+        //Log.d("DAte month ", " "+date + " " + month)
+
+        var weekDay = ReminderUtil.weekDay(calendar.get(Calendar.MONTH)+1,date,calendar.get(Calendar.YEAR))
+        var weekDayName = ReminderUtil.WEEKNAMES.values()[weekDay].name
+
+        //println("weekday "+weekDay +"weekdayname "+weekDayName)
+
+        var weekDays = monthCalendar.get(weekDayName)
+
+        /*println("getRemindersforMonthDate "+ getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name ,month!!,date))
+        println("getAllReminders(ReminderUtil.WhenSelectType.EVERYDAY.name) "+getAllReminders(ReminderUtil.EVERYDAY))
+        println("getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name,date) "+ getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name,date))
+        println("getRemindersforMonth( ReminderUtil.WhenSelectType.MONTH.name,month!!) "+getRemindersforMonth( ReminderUtil.WhenSelectType.MONTH.name,month!!))
+        println(" getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date "+getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date))
+        println("getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName) "+getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
+        println("getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName) "+getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))*/
+
+        todaysReminders.addAll(getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name ,month!!,date))
+        todaysReminders.addAll(getAllReminders(ReminderUtil.EVERYDAY))
+        todaysReminders.addAll(getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name,date))
+        todaysReminders.addAll(getRemindersforMonth( ReminderUtil.WhenSelectType.MONTH.name,month!!))
+        //todaysReminders.addAll(getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date))
+        todaysReminders.addAll( getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
+        todaysReminders.addAll(getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
+
+
+        for(i in 0 until weekDays!!.size){
+            //println("week day "+weekDays[i] )
+            if(weekDays[i] == date){
+                /*println(">>>>>>>>>>>>>>>>>>>>>week num ")
+                println("ndersforWeekWeekNum( "+ getRemindersforWeekWeekNum(ReminderUtil.WhenSelectType.WEEKNUM.name,weekDayName, i+1))
+                println("getRemindersforMonthWeekWeekNum "+ getRemindersforMonthWeekWeekNum(ReminderUtil.WhenSelectType.MONTHWEEKNUM.name,month,weekDayName,i+1))*/
+                todaysReminders.addAll(getRemindersforWeekWeekNum(ReminderUtil.WhenSelectType.WEEKNUM.name,weekDayName, i+1))
+                todaysReminders.addAll(getRemindersforMonthWeekWeekNum(ReminderUtil.WhenSelectType.MONTHWEEKNUM.name,month,weekDayName,i+1))
+            }
+        }
+        println("reminders size " + todaysReminders.size)
+
+        emit(todaysReminders)
+    }
+
+    suspend fun getTasksForMonth(monthNum: Int): Flow<TreeMap<Int,CalendarColumn>> = flow{
+        var monthReminders = TreeMap<Int,CalendarColumn>()
+        var month = ReminderUtil.monthsStr[monthNum]
+
+        var monthCalendar = ReminderUtil.getMonthCalendar(monthNum)
+        var taskIds = mutableListOf<Long>()
+
+        coroutineScope {
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name,month!!)
+
+                tasks.forEach {
+                    addTaskItem(it.reminder_date!!,monthReminders,it)
+                }
+            }
+            /*launch(Dispatchers.IO){
+                var tasks = getAllRemindersCalendar(ReminderUtil.EVERYDAY)
+                if(tasks.isNotEmpty()){
+
+                    for( i in 1..31){
+                        if(monthReminders.get(i) !=null ){
+                            monthReminders[i]!!.addAll(tasks)
+                        }else{
+                            var alltasks = mutableListOf<CalendarTaskItem>()
+                            alltasks.addAll(tasks)
+                            monthReminders.put(i, alltasks)
+                        }
+                    }
+                }
+            }*/
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name)
+
+                tasks.forEach {
+                    addTaskItem(it.reminder_date!!,monthReminders,it)
+                }
+            }
+            /*launch(Dispatchers.IO){
+                var tasks = getRemindersforMonthCalendar( ReminderUtil.WhenSelectType.MONTH.name,month!!)
+                if(tasks.isNotEmpty()){
+
+                    for( i in 1..31){
+                        if(monthReminders.get(i) !=null ){
+                            monthReminders[i]!!.addAll(tasks)
+                        }else{
+                            var alltasks = mutableListOf<CalendarTaskItem>()
+                            alltasks.addAll(tasks)
+                            monthReminders.put(i, alltasks)
+                        }
+                    }
+                }
+            }*/
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,)
+
+                tasks.forEach{calendarItem ->
+                    var weekDays = monthCalendar.get(calendarItem.reminder_week)
+                    weekDays!!.forEach {
+                        addTaskItem(it!!,monthReminders,calendarItem)
+                    }
+                }
+
+            }
+
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month!!,)
+                tasks.forEach{ calendarItem ->
+                    var weekDays = monthCalendar.get(calendarItem.reminder_week)
+                    weekDays!!.forEach {
+                        addTaskItem(it!!,monthReminders,calendarItem)
+                    }
+                }
+            }
+
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforWeekWeekNum(ReminderUtil.WhenSelectType.WEEKNUM.name)
+                tasks.forEach{calendarItem ->
+                    var weekDays = monthCalendar.get(calendarItem.reminder_week)
+
+                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem)
+                }
+            }
+
+            launch(Dispatchers.IO){
+                var tasks = getRemindersforMonthWeekWeekNum(ReminderUtil.WhenSelectType.MONTHWEEKNUM.name,month!!)
+                tasks.forEach{ calendarItem ->
+
+                    var weekDays = monthCalendar.get(calendarItem.reminder_week)
+
+                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem)
+                }
+            }
+        }
+        println("getTasksForMonth() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+monthReminders)
+        emit(monthReminders)
+    }
+
+    private fun addTaskItem(date:Int,
+                            monthReminders: TreeMap<Int,CalendarColumn>,
+                             calendarTaskItem: CalendarTaskItem){
+
+        var calendarColumn: CalendarColumn?
+
+        calendarColumn = monthReminders[date]
+        if(calendarColumn !=null ){
+            calendarColumn!!.tasks.add(calendarTaskItem)
+        }else{
+            calendarColumn = CalendarColumn(0,0,0, mutableListOf(calendarTaskItem))
+            monthReminders.put(date!!, calendarColumn!!)
+        }
+        if(calendarTaskItem.important_group_id == 22L)
+            ++calendarColumn!!.important
+
     }
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)

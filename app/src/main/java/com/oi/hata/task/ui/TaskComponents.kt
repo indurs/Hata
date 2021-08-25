@@ -62,57 +62,22 @@ import kotlin.reflect.KFunction0
 
 @ExperimentalMaterialApi
 @Composable
-fun TaskItem(
-                task: Task,
-                taskselected: Boolean,
-                onTaskItemClick: () -> Unit
-){
-    val taskTransitionState = taskTransition(taskselected)
-
-    var modifier =
-        if(taskselected)
-            Modifier.clickable(enabled = false, onClick = {})
-        else
-            Modifier.clickable(enabled = true, onClick = { onTaskItemClick() })
-
-    Column(
-        modifier = modifier.
-        background(color = MaterialTheme.colors.surface.copy(alpha = taskTransitionState.selectedAlpha).compositeOver(Color.White)),
-    ) {
-        Row(horizontalArrangement = Arrangement.Start, modifier = Modifier
-            .fillMaxWidth()
-
-        ){
-
-            Text(
-                text = task.task,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.body2,
-                color = Color.White.copy(alpha = taskTransitionState.contentAlpha))
-
-        }
-
-    }
-}
-
-@ExperimentalMaterialApi
-@Composable
 fun TaskGroup(  taskSize: Int = 0,
                 groupTask: GroupTask,
-                taskContentUpdates: TaskContentUpdates,
+                groupContentUpdates: GroupContentUpdates,
                 groupscroll:ScrollState,
             ){
 
-    val groupTransitionState = groupTransition(groupTask = groupTask,taskContentUpdates = taskContentUpdates)
+    val groupTransitionState = groupTransition(groupTask = groupTask,groupContentUpdates = groupContentUpdates)
     val scope = rememberCoroutineScope()
 
     Surface(elevation = 0.dp,
         modifier = Modifier
             .padding(16.dp)
-            .focusable(taskContentUpdates.selectedTaskGroup.Group!!.name.equals(groupTask.Group!!.name)),
+            .focusable(groupContentUpdates.selectedTaskGroup.Group!!.name.equals(groupTask.Group!!.name)),
         color = groupTransitionState.colorAlpha,
         onClick = {
-                    taskContentUpdates.onSelectedTaskGroup(groupTask)
+            groupContentUpdates.onSelectedTaskGroup(groupTask)
                     scope.launch {
                         groupscroll.animateScrollTo(1,animationSpec = tween(
                             durationMillis = 2000,
@@ -130,28 +95,29 @@ fun TaskGroup(  taskSize: Int = 0,
             Box(modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .background(color = groupTransitionState.colorAlpha)){
-                    if(groupTask.Group.id == 2L){
-                        Text(
-                            text = (groupTask.tasks!!.size + taskContentUpdates.importantGroupTask.tasks!!.size).toString(),
-                            style = MaterialTheme.typography.overline,
-                            color = groupTransitionState.contentAlpha
-                        )
-                    }else{
-                        Text(
-                            text = groupTask.tasks!!.size.toString(),
-                            style = MaterialTheme.typography.overline,
-                            color = groupTransitionState.contentAlpha
-                        )
-                    }
 
-                    Icon(
-                        painter = painterResource(R.drawable.ic_baseline_grain_24),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 16.dp, end = 8.dp, top = 4.dp)
-                            .size(12.dp),
-                        tint = MaterialTheme.colors.onSurface
+                if(groupTask.Group.id == 2L){
+                    Text(
+                        text = (groupContentUpdates.importantTasksCount + groupTask.tasks!!.size).toString(),
+                        style = MaterialTheme.typography.overline,
+                        color = groupTransitionState.contentAlpha
                     )
+                }else{
+                    Text(
+                        text = groupTask.tasks!!.size.toString(),
+                        style = MaterialTheme.typography.overline,
+                        color = groupTransitionState.contentAlpha
+                    )
+                }
+
+                Icon(
+                    painter = painterResource(R.drawable.ic_baseline_grain_24),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 8.dp, top = 4.dp)
+                        .size(12.dp),
+                    tint = MaterialTheme.colors.onSurface
+                )
                 }
 
             Spacer(modifier = Modifier
@@ -174,7 +140,8 @@ fun TaskList(
             modifier: Modifier,
             groupTask: GroupTask?,
             height: Dp,
-            taskContentUpdates: TaskContentUpdates,
+            onTaskSelected: () -> Unit,
+            taskListItemContentUpdates: TaskListItemContentUpdates,
             groupscroll: Int,
             taskscroll: ScrollState,
             offset: Float
@@ -188,14 +155,17 @@ fun TaskList(
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             ) {
                 Column {
-                    AddTaskHeader(taskContentUpdates)
+                    AddTaskHeader(groupTask = groupTask!!, onTaskSelected = onTaskSelected)
                     
                     Column(modifier = Modifier
                         .fillMaxWidth()
                         .verticalScroll(taskscroll)
 
                     ) {
-                        DismissableTasks(groupTask = groupTask, taskContentUpdates = taskContentUpdates)
+                        DismissableTasks(tasks = groupTask.tasks,
+                            onTaskSelected = onTaskSelected,
+                            taskListItemContentUpdates = taskListItemContentUpdates
+                        )
                         /*groupTask?.let{
                             it.tasks!!.mapIndexed { index, task ->
                                 if (index > 0) {
@@ -225,7 +195,9 @@ fun TaskList(
 @Composable
 private fun TaskRow(
     task: Task,
-    taskContentUpdates: TaskContentUpdates
+    taskselected: Boolean,
+    onTaskSelected: () -> Unit,
+    taskListItemContentUpdates: TaskListItemContentUpdates
 ){
     var unread by remember { mutableStateOf(false) }
     var delete by remember { mutableStateOf(false) }
@@ -244,14 +216,14 @@ private fun TaskRow(
         println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
         println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
         if(dismissState.currentValue == DismissValue.DismissedToStart)
-            taskContentUpdates.onDeleteTask(task)
+            taskListItemContentUpdates.onDeleteTask(task)
     }
 
     LaunchedEffect(dismissState.targetValue){
         println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
 
         if(dismissState.targetValue == DismissValue.DismissedToEnd)
-            taskContentUpdates.onTaskCompleted(task)
+            taskListItemContentUpdates.onTaskCompleted(task)
     }
     /*DisposableEffect(dismissState.currentValue) {
         onDispose {
@@ -312,7 +284,12 @@ private fun TaskRow(
                         if (dismissState.dismissDirection != null) 4.dp else 0.dp
                     ).value
                 ) {
-                    TaskItem(delete = delete,dismissState = dismissState, task = task, taskContentUpdates = taskContentUpdates)
+                    TaskItem(
+                        task = task,
+                        taskListItemContentUpdates = taskListItemContentUpdates,
+                        onTaskSelected = onTaskSelected,
+                        taskselected = taskselected
+                    )
                 }
             }
         )
@@ -321,20 +298,33 @@ private fun TaskRow(
 }
 
 @ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 fun TaskItem(
-            delete: Boolean,
-            dismissState: DismissState,
             task: Task,
-            taskContentUpdates: TaskContentUpdates
+            taskselected: Boolean = false,
+            onTaskSelected: () -> Unit,
+            taskListItemContentUpdates: TaskListItemContentUpdates,
             ){
 
-    val taskItemCompleteTransitionState = taskItemCompleteTransition(task = task,taskContentUpdates = taskContentUpdates)
-    val taskItemImportantTransitionState = taskItemImportantTransition(task = task, taskContentUpdates = taskContentUpdates)
+    val taskItemCompleteTransitionState = taskItemCompleteTransition(task = task,)
+    val taskItemImportantTransitionState = taskItemImportantTransition(task = task,)
+    val taskItemTodayTransitionState = taskItemTodayTransition(task = task,)
+    
+
+    var modifier =
+        if(taskselected)
+            Modifier.clickable(enabled = false, onClick = { })
+        else
+            Modifier.clickable(enabled = true, onClick = {
+                                                            onTaskSelected()
+                                                            taskListItemContentUpdates.onTaskItemClick(task.id)
+                                                          })
 
     Column(
         modifier = Modifier
-            .fillMaxWidth().padding(top = 4.dp,bottom = 4.dp)
+            .fillMaxWidth()
+            .padding(top = 4.dp, bottom = 4.dp)
 
             //.swipeToDismiss { taskContentUpdates.deleteTask(task) }
             /*.clickable {
@@ -347,45 +337,49 @@ fun TaskItem(
             .fillMaxWidth()
 
         ){
-                Column(modifier = Modifier
-                    .align(
-                        Alignment
-                            .CenterVertically
+            Column(modifier = Modifier
+                .align(
+                    Alignment
+                        .CenterVertically
+                )
+                .clickable { taskListItemContentUpdates.onTaskCompleted(task) }
+                .padding(8.dp)
+
+
+            ) {
+                Box(
+                ){
+                    Icon(
+                        modifier = Modifier.size(28.dp),
+                        painter = painterResource(R.drawable.ic_action_circle),
+                        contentDescription = null,
+                        tint = colorResource(id = R.color.dec)
                     )
-                    .clickable { taskContentUpdates.onTaskCompleted(task) }
-                    .padding(8.dp)
 
-
-                ) {
-                    Box(
-                    ){
-                        Icon(
-                            modifier = Modifier.size(28.dp),
-                            painter = painterResource(R.drawable.ic_action_circle),
-                            contentDescription = null,
-                            tint = colorResource(id = R.color.dec)
-                        )
-
-                        Icon(
-                            painter = painterResource(R.drawable.ic_action_check),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(12.dp)
-                                .align(Alignment.Center),
-                            tint = taskItemCompleteTransitionState.contentAlpha
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_action_check),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(12.dp)
+                            .align(Alignment.Center),
+                        tint = taskItemCompleteTransitionState.contentAlpha
+                    )
                 }
+            }
+
+            Column(modifier = modifier
+                .align(
+                    Alignment
+                        .CenterVertically
+                )
+                .weight(3f)
 
 
-            Text(
-                text = task.task,
-                modifier = Modifier
-                    .padding(start = 4.dp, top = 16.dp, bottom = 16.dp)
-                    .weight(3f)
-                    .clickable {    taskContentUpdates.onTaskSelected()
-                                    taskContentUpdates.onTaskItemClick(task.id)
-                               }
+                .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+            ) {
+                Text(
+                    text = task.task,
+
                     /*.pointerInput(Unit) {
                         coroutineScope {
                             launch {
@@ -398,29 +392,34 @@ fun TaskItem(
                             }
                         }
                     }*/
-                    ,
-                style = MaterialTheme.typography.body2,
-                color = taskItemCompleteTransitionState.colorAlpha)
+
+                    style = MaterialTheme.typography.body2,
+                    color = taskItemCompleteTransitionState.colorAlpha)
+            }
+
             Column(modifier = Modifier
-                .weight(1f)
                 .align(Alignment.CenterVertically)
                ) {
                 Row(modifier = Modifier
                     .align(Alignment.End)
                     .padding(end = 8.dp)) {
-                    Box(modifier = Modifier
-                        .padding(top = 2.dp, end = 8.dp)
-                        .clickable { taskContentUpdates.onTaskImportant(task) }){
+                    AnimatedVisibility(visible = taskListItemContentUpdates.displayToday || task.todaytask) {
+                        Box(modifier = Modifier
+                            .clickable { taskListItemContentUpdates.onTaskSetForToday(task) }
+                            .padding(top = 2.dp, end = 8.dp)
+                        ){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_today),
                             modifier = Modifier
                                 .padding(end = 16.dp)
-                                .size(24.dp),
+                                .size(20.dp),
                             contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.50f)
+                            tint = taskItemTodayTransitionState.colorAlpha
                         )
                     }
-                    Box(modifier = Modifier.clickable { taskContentUpdates.onTaskImportant(task) }){
+                    }
+
+                    Box(modifier = Modifier.clickable { taskListItemContentUpdates.onTaskImportant(task) }){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_star),
                             modifier = Modifier
@@ -443,14 +442,16 @@ fun TaskItem(
 
         }
 
-
     }
 
 }
 
 @ExperimentalMaterialApi
 @Composable
-private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
+private fun AddTaskHeader(
+                            onTaskSelected: () -> Unit,
+                            groupTask: GroupTask
+                        ){
     Row() {
 
         Column {
@@ -466,7 +467,7 @@ private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
                         ),
                     color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
 
-                    onClick = { taskContentUpdates.onTaskSelected() }
+                    onClick = { onTaskSelected() }
                 ) {
                     Row(){
                         Icon(
@@ -476,13 +477,13 @@ private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
                                 .align(Alignment.CenterVertically)
                                 .padding(start = 4.dp),
                             contentDescription = null,
-                            tint = colorResource(id = R.color.sample)
+                            tint = colorResource(id = R.color.header2)
                         )
                         Text(
                             modifier = Modifier.padding(top=4.dp,bottom = 4.dp,start = 8.dp,end = 8.dp),
                             text = "Task",
                             style = MaterialTheme.typography.overline,
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             color = Color.White
                         )
                     }
@@ -493,13 +494,10 @@ private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
                         modifier = Modifier
                             .padding(top = 4.dp, bottom = 4.dp, start = 8.dp, end = 8.dp)
                             .align(Alignment.CenterStart),
-                        text = "Tasks",
-                        style = MaterialTheme.typography.overline,
-                        fontSize = 12.sp,
-                        color = Color.White
+                        text = groupTask.Group!!.name,
+                        style = MaterialTheme.typography.subtitle1,
+                        color = colorResource(id = R.color.header2)
                     )
-
-
             }
 
             Spacer(modifier = Modifier.height(AddTaskHeader))
@@ -514,9 +512,9 @@ private fun AddTaskHeader(taskContentUpdates: TaskContentUpdates){
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-private fun AddGroupButton(taskContentUpdates: TaskContentUpdates){
+private fun AddGroupButton(groupContentUpdates: GroupContentUpdates){
 
-    Column(modifier = Modifier.clickable { taskContentUpdates.onAddgroupSelected() }) {
+    Column(modifier = Modifier.clickable { groupContentUpdates.onAddgroupSelected() }) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Surface(
                 modifier = Modifier
@@ -530,10 +528,10 @@ private fun AddGroupButton(taskContentUpdates: TaskContentUpdates){
                 color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
             ) {
                 Row() {
-                    AnimatedVisibility(visible = taskContentUpdates.addGroupSelected) {
-                        AddGroup(taskContentUpdates = taskContentUpdates)
+                    AnimatedVisibility(visible = groupContentUpdates.addGroupSelected) {
+                        AddGroup(groupContentUpdates = groupContentUpdates)
                     }
-                    AnimatedVisibility(visible = !taskContentUpdates.addGroupSelected) {
+                    AnimatedVisibility(visible = !groupContentUpdates.addGroupSelected) {
                         Row() {
                             Icon(
                                 painter = painterResource(R.drawable.ic_action_add),
@@ -565,14 +563,14 @@ private fun AddGroupButton(taskContentUpdates: TaskContentUpdates){
 }
 
 @Composable
-private fun AddGroup(taskContentUpdates: TaskContentUpdates){
+private fun AddGroup(groupContentUpdates: GroupContentUpdates){
     Row(){
 
-        BasicTextField( value = taskContentUpdates.newGroup,
+        BasicTextField( value = groupContentUpdates.newGroup,
             modifier = Modifier
                 .padding(8.dp)
                 .size(height = 20.dp, width = 160.dp),
-            onValueChange = { taskContentUpdates.onAddNewGroup(it)},
+            onValueChange = { groupContentUpdates.onAddNewGroup(it)},
             textStyle = TextStyle(color = Color.White, ),
             enabled = true,
             cursorBrush = SolidColor(Color.Yellow),
@@ -584,8 +582,8 @@ private fun AddGroup(taskContentUpdates: TaskContentUpdates){
                 .align(Alignment.CenterVertically)
                 .padding(start = 4.dp, end = 8.dp)
                 .clickable(
-                    enabled = taskContentUpdates.newGroup.isNotEmpty(),
-                    onClick = { taskContentUpdates.saveNewGroup(taskContentUpdates.newGroup) })
+                    enabled = groupContentUpdates.newGroup.isNotEmpty(),
+                    onClick = { groupContentUpdates.saveNewGroup(groupContentUpdates.newGroup) })
             ,
             contentDescription = null,
             tint = colorResource(id = R.color.sample)
@@ -596,7 +594,7 @@ private fun AddGroup(taskContentUpdates: TaskContentUpdates){
                 .size(30.dp)
                 .align(Alignment.CenterVertically)
                 .padding(start = 4.dp, end = 8.dp)
-                .clickable { taskContentUpdates.onAddgroupSelected() }
+                .clickable { groupContentUpdates.onAddgroupSelected() }
             ,
             contentDescription = null,
             tint = colorResource(id = R.color.sample)
@@ -617,7 +615,6 @@ fun Header() {
 fun StaggeredGrid(
     modifier: Modifier = Modifier,
     columns: Int = 2,
-    taskContentUpdates: TaskContentUpdates,
     content: @Composable () -> Unit
 ) {
     Layout(
@@ -684,13 +681,20 @@ fun TaskButton(onTaskAddClick: () -> Unit){
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun DismissableTasks(groupTask: GroupTask?,taskContentUpdates: TaskContentUpdates,){
+fun DismissableTasks(tasks: List<Task>?,
+                     taskselected: Boolean = false,
+                     onTaskSelected: () -> Unit,
+                     taskListItemContentUpdates: TaskListItemContentUpdates){
 
     Column {
-        groupTask?.let {
-            it.tasks!!.mapIndexed { index, item ->
+        tasks?.let {
+            tasks!!.mapIndexed { index, item ->
                 key(item.id){
-                    TaskRow(task = item, taskContentUpdates = taskContentUpdates)
+                    TaskRow(task = item,
+                            taskListItemContentUpdates = taskListItemContentUpdates,
+                            onTaskSelected = onTaskSelected,
+                            taskselected = taskselected
+                    )
                 }
             }
 
@@ -699,8 +703,8 @@ fun DismissableTasks(groupTask: GroupTask?,taskContentUpdates: TaskContentUpdate
 }
 
 
-
 private fun Modifier.swipeToDismiss(
+
     onDismissed: () -> Unit
 ): Modifier = composed {
     // This `Animatable` stores the horizontal offset for the element.
@@ -797,84 +801,6 @@ private fun Modifier.swipeToDismiss(
 }
 
 
-/*private fun Modifier.swipeToDismiss(
-    onDismissed: () -> Unit
-): Modifier = composed {
-    // This `Animatable` stores the horizontal offset for the element.
-    val offsetX = remember { Animatable(0f) }
-    pointerInput(Unit) {
-        // Used to calculate a settling position of a fling animation.
-        val decay = splineBasedDecay<Float>(this)
-        // Wrap in a coroutine scope to use suspend functions for touch events and animation.
-        coroutineScope {
-            while (true) {
-                // Wait for a touch down event.
-                val pointerId = awaitPointerEventScope { awaitFirstDown().id }
-                // Interrupt any ongoing animation.
-                offsetX.stop()
-                // Prepare for drag events and record velocity of a fling.
-                val velocityTracker = VelocityTracker()
-
-
-                // Wait for drag events.
-                awaitPointerEventScope {
-
-                    var change =
-                        awaitHorizontalTouchSlopOrCancellation(pointerId) { change, over ->
-                            println("awaitHorizontalTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-                            val originalX = offsetX.value
-                            val newValue =
-                                (originalX + change.positionChange().x)
-                            change.consumePositionChange()
-                            //offsetX.value = newValue
-
-                            launch { offsetX.snapTo(newValue) }
-
-                            change.consumeAllChanges()
-
-                        }
-                    horizontalDrag(pointerId) { change ->
-                        // Record the position after offset
-                        val horizontalDragOffset = offsetX.value + change.positionChange().x
-                        launch {
-                            // Overwrite the `Animatable` value while the element is dragged.
-                            offsetX.snapTo(horizontalDragOffset)
-                        }
-                        // Record the velocity of the drag.
-                        velocityTracker.addPosition(change.uptimeMillis, change.position)
-                        // Consume the gesture event, not passed to external
-                        //change.consumeAllChanges()
-                    }
-                }
-                // Dragging finished. Calculate the velocity of the fling.
-                val velocity = velocityTracker.calculateVelocity().x
-                // Calculate where the element eventually settles after the fling animation.
-                val targetOffsetX = decay.calculateTargetValue(offsetX.value, velocity)
-                // The animation should end as soon as it reaches these bounds.
-                offsetX.updateBounds(
-                    lowerBound = -size.width.toFloat(),
-                    upperBound = size.width.toFloat()
-                )
-                launch {
-                    if (targetOffsetX.absoluteValue <= size.width) {
-                        // Not enough velocity; Slide back to the default position.
-                        offsetX.animateTo(targetValue = 0f, initialVelocity = velocity)
-                    } else {
-                        // Enough velocity to slide away the element to the edge.
-                        offsetX.animateDecay(velocity, decay)
-                        // The element was swiped away.
-                        onDismissed()
-                    }
-                }
-            }
-        }
-    }
-        // Apply the horizontal offset to the element.
-        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-}
-*/
-
 private fun Modifier.onItemclick(
     onDismissed: () -> Unit
 ): Modifier = composed {
@@ -913,7 +839,7 @@ private fun Modifier.onItemclick(
 @ExperimentalMaterialApi
 @Composable
 fun TaskTopBar(modifier: Modifier,
-               taskContentUpdates: TaskContentUpdates,
+               groupContentUpdates: GroupContentUpdates,
                groupScrollState: ScrollState){
     //val maxOffset = with(LocalDensity.current) { if(groupScrollState.value > 0 || tasksscroll.value > 0) (MinTopBarOffset - (groupScrollState.value + tasksscroll.value).toDp()) else MinTopBarOffset }
 
@@ -940,7 +866,7 @@ fun TaskTopBar(modifier: Modifier,
                 }
             }
 
-            AddGroupButton(taskContentUpdates = taskContentUpdates)
+            AddGroupButton(groupContentUpdates = groupContentUpdates)
 
         }
     }
@@ -951,10 +877,12 @@ private val MinTopBarOffset = 16.dp
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
-fun BottomBar(
+fun ReminderBar(
                         customReminderContentUpdates: CustomReminderContentUpdates,
                         reminderContentUpdates: ReminderContentUpdates,
-                        taskContentUpdates: TaskContentUpdates
+                        taskContentUpdates: TaskContentUpdates,
+                        onTaskSelected: () -> Unit,
+                        taskselected: Boolean
 ){
     Surface(
         modifier = Modifier
@@ -964,7 +892,7 @@ fun BottomBar(
     ) {
         Column() {
 
-            AnimatedVisibility(visible = reminderContentUpdates.reminderSelected && taskContentUpdates.taskselected,) {
+            AnimatedVisibility(visible = reminderContentUpdates.reminderSelected && taskselected,) {
 
                 Row(
                 ) {
@@ -976,7 +904,7 @@ fun BottomBar(
             }
 
             AnimatedVisibility(
-                visible = taskContentUpdates.taskselected,
+                visible = taskselected,
 
                 ) {
 
@@ -984,6 +912,7 @@ fun BottomBar(
                     TaskContent(
                         taskContentUpdates = taskContentUpdates,
                         reminderContentUpdates = reminderContentUpdates,
+                        onTaskSelected = onTaskSelected
                     )
                 }
             }
@@ -998,7 +927,7 @@ fun BottomBar(
 private fun TaskContent(
                       taskContentUpdates: TaskContentUpdates,
                       reminderContentUpdates: ReminderContentUpdates,
-
+                      onTaskSelected: () -> Unit
 
 ){
 
@@ -1025,7 +954,7 @@ private fun TaskContent(
                 .padding(top = 12.dp)) {
                 HataTaskSheetIconButton(
                     onClick = {
-                        taskContentUpdates.onTaskSelected()
+                        onTaskSelected()
                         taskContentUpdates.onCloseTask()
                         reminderContentUpdates.onReminderOptSelected(ReminderUtil.NONE)
                     },
@@ -1052,7 +981,7 @@ private fun TaskContent(
                         else -> true
                     },
                     onClick = {
-                        taskContentUpdates.onTaskSelected()
+                        onTaskSelected()
                         taskContentUpdates.onSaveTask(taskContentUpdates.groupId)
                         reminderContentUpdates.onReminderOptSelected(ReminderUtil.NONE)
                     }) {
@@ -1200,11 +1129,11 @@ class GroupTransition(
 @Composable
 fun groupTransition(
                     groupTask: GroupTask,
-                    taskContentUpdates: TaskContentUpdates
+                    groupContentUpdates: GroupContentUpdates
                     ): GroupTransition{
 
     val transition = updateTransition(
-        targetState = if (groupTask.Group!!.name.equals(taskContentUpdates.selectedTaskGroup.Group!!.name))
+        targetState = if (groupTask.Group!!.name.equals(groupContentUpdates.selectedTaskGroup.Group!!.name))
                             SelectionState.Selected
                       else SelectionState.Unselected,
         label = ""
@@ -1270,7 +1199,6 @@ class TaskItemTransition(
 @Composable
 fun taskItemCompleteTransition(
     task: Task,
-    taskContentUpdates: TaskContentUpdates
 ): TaskItemTransition {
 
     val transition = updateTransition(
@@ -1301,9 +1229,9 @@ fun taskItemCompleteTransition(
 }
 
 @Composable
-fun taskItemImportantTransition(
+fun
+        taskItemImportantTransition(
     task: Task,
-    taskContentUpdates: TaskContentUpdates
 ): TaskItemTransition {
     println("TASK GROUP >>>>>>>>>>>>>>>>>>>"+ task.importantGroupId)
     val transition = updateTransition(
@@ -1333,10 +1261,50 @@ fun taskItemImportantTransition(
 
 }
 
+class TaskItemTodayTransition(
+    contentAlpha: State<Float>,
+    colorAlpha: State<Color>
+) {
+    val contentAlpha by contentAlpha
+    val colorAlpha by colorAlpha
+}
+
+@Composable
+fun taskItemTodayTransition(
+    task: Task,
+): TaskItemTodayTransition {
+
+    val transition = updateTransition(
+        targetState = if (task.todaytask)
+            SelectionState.Selected
+        else SelectionState.Unselected,
+        label = ""
+    )
+
+    val contentAlpha = transition.animateFloat() { state ->
+        when (state) {
+            SelectionState.Unselected -> 0.0f
+            SelectionState.Selected -> 0.90f
+        }
+    }
+
+    val colorAlpha = transition.animateColor { state ->
+        when (state) {
+            SelectionState.Unselected -> Color.White
+            SelectionState.Selected -> colorResource(id = R.color.apr)
+        }
+    }
+
+    return remember(transition) {
+        TaskItemTodayTransition(contentAlpha = contentAlpha,colorAlpha = colorAlpha)
+    }
+
+}
+
 
 data class CustomReminderContentUpdates(
     val onCustomReminderSelect: () -> Unit,
-    val onCustomReminderInitialize: () -> Unit,
+    val onCustomReminderInit: () -> Unit,
     val onCompleteReminder: () -> Unit,
     val onCloseReminder: () -> Unit,
     val customreminder: String,
@@ -1363,31 +1331,37 @@ data class ReminderContentUpdates(
 
 data class
 TaskContentUpdates(
-    val onTaskSelected: () -> Unit,
-    val taskselected: Boolean,
+    val onTaskTxtChange: (String) -> Unit,
+    val taskTxt: String,
+    val onSaveTask: (Long) -> Unit,
+    val onDueDateSelect: (year: Int, month: Int, day:Int) -> Unit,
+    val dueDateSelected: Boolean,
+    val onCloseTask: () -> Unit,
+    val dueDate: String,
+    val groupId: Long,
+)
+
+data class TaskListItemContentUpdates(
     val onTaskCompleted: (Task) -> Unit,
     val taskcompleted: List<Long>,
     val onTaskImportant: (Task) -> Unit,
     val taskImportant: List<Long>,
-    val onTaskTxtChange: (String) -> Unit,
-    val taskTxt: String,
-    val onSaveTask: (Long) -> Unit,
-    val onAddTaskSelected: () -> Unit,
-    val onDueDateSelect: (year: Int, month: Int, day:Int) -> Unit,
-    val dueDateSelected: Boolean,
-    val onCloseTask: () -> Unit,
+    val todaysTasks: List<Long>,
     val onTaskItemClick: (Long) -> Unit,
+    val displayToday: Boolean,
+    val onDeleteTask: (Task) -> Unit,
+    val onTaskSetForToday: (Task) -> Unit
+)
+
+data class GroupContentUpdates(
     val selectedTaskGroup: GroupTask,
-    val importantGroupTask: ImportantGroupTask,
     val onSelectedTaskGroup: (GroupTask) -> Unit,
     val onAddgroupSelected: () -> Unit,
     val addGroupSelected: Boolean,
     val onAddNewGroup: (String) -> Unit,
     val saveNewGroup: (String) -> Unit,
-    val onDeleteTask: (Task) -> Unit,
     val newGroup: String,
-    val dueDate: String,
-    val groupId: Long,
+    val importantTasksCount: Int
 )
 
 enum class TASK_MODE { INSERT, UPDATE, DELETE }
