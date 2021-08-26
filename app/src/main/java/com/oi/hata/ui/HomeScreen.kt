@@ -20,6 +20,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.oi.hata.R
 import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
@@ -139,61 +140,59 @@ private fun HomeScreen(
 ) {
     var calendarhorscroll = rememberScrollState()
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        drawerContent = {},
-        topBar = {
-        },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = taskselected,
-            )
-            {
-                ReminderBar(
-                    reminderContentUpdates = reminderContentUpdates,
-                    customReminderContentUpdates = customReminderContentUpdates,
-                    taskContentUpdates = taskContentUpdates,
-                    onTaskSelected = { onTaskSelected() },
-                    taskselected = taskselected
-                )
-            }
-            AnimatedVisibility(visible = !taskselected) {
-                BottomBar(
-                    diaryselected = diaryselected,
-                    onDiarySelected = onDiarySelected,
-                    travelselected = travelselected,
-                    onTravelSelected = onTravelSelected,
-                    onTaskTabSelected = onTaskTabSelected
-                )
-            }
 
-        },
-        content= {
+       Box() {
 
-            Column() {
-                Surface(modifier = Modifier.fillMaxSize()) {
+           Column() {
+               Surface(modifier = Modifier.fillMaxSize()) {
 
-                    HomeTabContent(
-                        currentTab = currenttab,
-                        onTabChange,
-                        tabs = HataHomeScreens.values().map{it.title},
-                        scaffoldState = scaffoldState,
-                        nocontent = nocontent,
-                        todayReminders = todayReminders,
-                        tomorrowReminders = tomorrowReminders,
-                        onTaskSelected = onTaskSelected,
-                        taskselected = taskselected,
-                        taskListItemContentUpdates = taskListItemContentUpdates,
-                        calhorscrollState = calendarhorscroll,
-                        calendarContentUpdates = calendarContentUpdates,
-                        calendarDateTasksState = calendarDateTasksState
-                    )
+                   HomeTabContent(
+                       currentTab = currenttab,
+                       onTabChange,
+                       tabs = HataHomeScreens.values().map { it.title },
+                       scaffoldState = scaffoldState,
+                       nocontent = nocontent,
+                       todayReminders = todayReminders,
+                       tomorrowReminders = tomorrowReminders,
+                       onTaskSelected = onTaskSelected,
+                       taskselected = taskselected,
+                       taskListItemContentUpdates = taskListItemContentUpdates,
+                       calhorscrollState = calendarhorscroll,
+                       calendarContentUpdates = calendarContentUpdates,
+                       calendarDateTasksState = calendarDateTasksState
+                   )
 
-                }
-            }
-        }
-    )
+               }
 
+           }
+
+           AnimatedVisibility(
+               visible = taskselected,
+               Modifier.align(Alignment.BottomCenter)
+           )
+           {
+               ReminderBar(
+                   reminderContentUpdates = reminderContentUpdates,
+                   customReminderContentUpdates = customReminderContentUpdates,
+                   taskContentUpdates = taskContentUpdates,
+                   onTaskSelected = { onTaskSelected() },
+                   taskselected = taskselected
+               )
+           }
+           AnimatedVisibility(
+               visible = !taskselected,
+               Modifier.align(Alignment.BottomCenter)
+           ) {
+               BottomBar(
+                   diaryselected = diaryselected,
+                   onDiarySelected = onDiarySelected,
+                   travelselected = travelselected,
+                   onTravelSelected = onTravelSelected,
+                   onTaskTabSelected = onTaskTabSelected
+               )
+           }
+
+       }
 }
 
 
@@ -390,16 +389,17 @@ fun HataCalendar(
             calhorscrollState = calhorscrollState,
         )
 
-        TaskSectionTitle(
+       /* TaskSectionTitle(
             date = calendarContentUpdates.selectedCalendarDate,
-            tasksScrollState = tasksScrollState)
+            tasksScrollState = tasksScrollState)*/
 
         CalendarTasksSection(
             tasksScrollState = tasksScrollState,
             onTaskSelected=onTaskSelected,
             taskListItemContentUpdates = taskListItemContentUpdates,
             taskselected = taskselected,
-            calendarDateTasks = calendarDateTasksState
+            calendarDateTasks = calendarDateTasksState,
+            date = calendarContentUpdates.selectedCalendarDate
         )
 
     }
@@ -411,12 +411,12 @@ fun TaskSectionTitle(
                     tasksScrollState: ScrollState
                     ){
 
-    val titleOffset = with(LocalDensity.current) { CAL_TASKS_TITLE_OFFSET.toPx() }
+    val titleOffset = with(LocalDensity.current) { (CALENDAR_SIZE+CAL_TASK_TITLE_SPACE).toPx() }
 
     val offset = (titleOffset - tasksScrollState.value)
 
     Column(modifier = Modifier.graphicsLayer { translationY = offset }) {
-        Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE))
+        //Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE))
         Text(
             text = date.toString(),
             style = MaterialTheme.typography.overline,
@@ -430,30 +430,40 @@ fun TaskSectionTitle(
 @ExperimentalMaterialApi
 @Composable
 private fun CalendarTasksSection(
+                                date:Int,
                                 tasksScrollState: ScrollState,
                                 onTaskSelected: () -> Unit,
                                 taskListItemContentUpdates: TaskListItemContentUpdates,
                                 taskselected: Boolean,
                                 calendarDateTasks: List<Task>?,
                         ){
-    Column() {
-        Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE ))
+
+    val calendarOffset = with(LocalDensity.current) { CAL_CALENDAR_OFFSET.toPx() }
+    var offset = (calendarOffset - tasksScrollState.value)
+
+    var titileSize = (MIN_TITLE_SIZE + tasksScrollState.value).coerceAtMost(MAX_TITLE_SIZE)
 
         Column(modifier = Modifier
             .fillMaxHeight()
             .verticalScroll(tasksScrollState)) {
-
+            Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE ))
+            Text(
+                text = "25",
+                fontSize = titileSize.sp,
+                style = MaterialTheme.typography.overline,
+                color = colorResource(id = R.color.taskdivider )
+            )
             DismissableTasks(
                 tasks = calendarDateTasks,
                 onTaskSelected = onTaskSelected,
                 taskselected = taskselected,
                 taskListItemContentUpdates = taskListItemContentUpdates
             )
+            Spacer(modifier = Modifier.height(48.dp))
         }
-    }
+
 
 }
-
 
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
@@ -464,7 +474,7 @@ fun HataCalendarSection(
     calhorscrollState:ScrollState
 ){
     val calendarOffset = with(LocalDensity.current) { CAL_CALENDAR_OFFSET.toPx() }
-    val calMinOffset = with(LocalDensity.current) { (CAL_CALENDAR_OFFSET - 100.dp).toPx() }
+    val calMinOffset = with(LocalDensity.current) { (CAL_CALENDAR_OFFSET - 120.dp).toPx() }
 
     var offset = (calendarOffset - tasksScrollState.value)
 
@@ -490,8 +500,6 @@ private fun HataCalendarSectionContent(
     calhorscrollState:ScrollState,
     offset: Float
 ){
-
-
 
     Column(
         Modifier
@@ -537,7 +545,6 @@ fun CalendarWeekName(week: String){
             .background(
                 Color.Transparent
             )
-
 
         Column(modifier = wkNameSurfaceModifier,
             verticalArrangement = Arrangement.Center,
@@ -732,6 +739,9 @@ private val CAL_CALENDAR_OFFSET = 48.dp
 private val CAL_MIN_OFFSET = CAL_CALENDAR_OFFSET/2
 private val HOME_TABS_OFFSET = 16.dp
 private val CAL_TASKS_TITLE_OFFSET = CALENDAR_SIZE + CAL_TASK_TITLE_SPACE
+
+private val MIN_TITLE_SIZE = 16
+private val MAX_TITLE_SIZE = 48
 
 class TabContent(val homescreen: HataHomeScreens, val content: @Composable () -> Unit)
 
