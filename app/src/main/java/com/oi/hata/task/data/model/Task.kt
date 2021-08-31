@@ -28,8 +28,8 @@ import java.time.LocalDate
 )
 data class Task(
     @ColumnInfo(name = "task_id") @PrimaryKey(autoGenerate = true) var id: Long = 0,
-    @ColumnInfo(name = "task_reminder_id") var taskReminderId: Long,
-    @ColumnInfo(name = "task_group_id") var taskGroupId: Long,
+    @ColumnInfo(name = "task_reminder_id") var taskReminderId: Long?,
+    @ColumnInfo(name = "task_group_id") var taskGroupId: Long = 0,
     @ColumnInfo(name = "important_group_id") var importantGroupId: Long,
     @ColumnInfo(name = "task") var task: String,
     @ColumnInfo(name = "tag") var tag: String,

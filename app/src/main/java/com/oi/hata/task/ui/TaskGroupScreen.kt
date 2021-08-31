@@ -205,13 +205,14 @@ fun Tasks(modifier: Modifier = Modifier,
 
     TaskList(
         modifier = modifier,
+        taskRowModifier = Modifier,
         groupTask = groupTask,
         onTaskSelected = onTaskSelected,
         taskListItemContentUpdates = taskListItemContentUpdates,
         height = height,
         groupscroll = groupscroll,
         taskscroll = taskscroll,
-        offset = offset
+        offset = offset,
     )
 
 

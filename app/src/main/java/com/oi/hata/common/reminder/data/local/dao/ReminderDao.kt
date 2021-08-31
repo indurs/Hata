@@ -91,7 +91,7 @@ interface ReminderDao {
 
     @Transaction
     suspend fun insertReminder(
-                                hataReminder: HataReminder
+                                hataReminder: HataReminder?
                                 /*reminderTxt: String,
                                 alarmScreenVal: String,
                                 reminderOption: String,
@@ -105,53 +105,58 @@ interface ReminderDao {
                                 reminderWeekNum: List<Int>,
                                 remoptPickDate: String*/
 
-    ): Long{
-        var reminderMaster = ReminderMaster(
-                                            alarmScreenVal = hataReminder.alarmScreenVal,
-                                            reminderTime = hataReminder.reminderTime,
-                                            remCustomWhenSelectType = hataReminder.remCustomWhenSelectType,
-                                            reminderFormat = "",
-                                            reminderEndyear = hataReminder.reminderEndYear,
-                                            reminderOption = hataReminder.reminderOption,
-                                            remoptPickDate = hataReminder.remoptPickDate
-                                            )
+    ): Long?{
+        var reminderId: Long? = null
 
-        var reminderId = insertReminderMaster(reminderMaster = reminderMaster)
+        if(hataReminder != null){
+            var reminderMaster = ReminderMaster(
+                alarmScreenVal = hataReminder.alarmScreenVal,
+                reminderTime = hataReminder.reminderTime,
+                remCustomWhenSelectType = hataReminder.remCustomWhenSelectType,
+                reminderFormat = "",
+                reminderEndyear = hataReminder.reminderEndYear,
+                reminderOption = hataReminder.reminderOption,
+                remoptPickDate = hataReminder.remoptPickDate
+            )
+
+            reminderId = insertReminderMaster(reminderMaster = reminderMaster)
 
 
-        when(hataReminder.remCustomWhenSelectType){
+            when(hataReminder.remCustomWhenSelectType){
 
-            ReminderUtil.WhenSelectType.DATE.name -> {
-                insertAllReminderDates(reminderDates = transformDates(reminderId = reminderId,reminderDates = hataReminder.reminderDates!!))
-            }
-            ReminderUtil.WhenSelectType.MONTH.name -> {
-                insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
-            }
-            ReminderUtil.WhenSelectType.MONTHDATE.name -> {
-                insertAllReminderDates(reminderDates = transformDates(reminderId = reminderId,reminderDates = hataReminder.reminderDates!!))
-                insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
-                Log.d("INSERT ", "MONTHDATE "+ hataReminder.reminderMonths[0] +" date "+hataReminder.reminderDates[0])
-            }
+                ReminderUtil.WhenSelectType.DATE.name -> {
+                    insertAllReminderDates(reminderDates = transformDates(reminderId = reminderId,reminderDates = hataReminder.reminderDates!!))
+                }
+                ReminderUtil.WhenSelectType.MONTH.name -> {
+                    insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
+                }
+                ReminderUtil.WhenSelectType.MONTHDATE.name -> {
+                    insertAllReminderDates(reminderDates = transformDates(reminderId = reminderId,reminderDates = hataReminder.reminderDates!!))
+                    insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
+                    Log.d("INSERT ", "MONTHDATE "+ hataReminder.reminderMonths[0] +" date "+hataReminder.reminderDates[0])
+                }
 
-            ReminderUtil.WhenSelectType.MONTHWEEK.name -> {
-                insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
-                insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
-            }
+                ReminderUtil.WhenSelectType.MONTHWEEK.name -> {
+                    insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
+                    insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
+                }
 
-            ReminderUtil.WhenSelectType.MONTHWEEKNUM.name -> {
-                insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
-                insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
-                insertAllReminderWeekNums(transformWeekNums(reminderId = reminderId,reminderWeekNums = hataReminder.reminderWeekNum!!))
-            }
-            ReminderUtil.WhenSelectType.WEEK.name -> {
-                insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
-            }
-            ReminderUtil.WhenSelectType.WEEKNUM.name -> {
-                insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
-                insertAllReminderWeekNums(transformWeekNums(reminderId = reminderId,reminderWeekNums = hataReminder.reminderWeekNum!!))
-            }
+                ReminderUtil.WhenSelectType.MONTHWEEKNUM.name -> {
+                    insertAllReminderMonths(reminderMonths = transformMonths(reminderId = reminderId,reminderMonths = hataReminder.reminderMonths!!))
+                    insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
+                    insertAllReminderWeekNums(transformWeekNums(reminderId = reminderId,reminderWeekNums = hataReminder.reminderWeekNum!!))
+                }
+                ReminderUtil.WhenSelectType.WEEK.name -> {
+                    insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
+                }
+                ReminderUtil.WhenSelectType.WEEKNUM.name -> {
+                    insertAllReminderWeeks(transformWeeks(reminderId = reminderId,reminderWeeks = hataReminder.reminderWeeks!!))
+                    insertAllReminderWeekNums(transformWeekNums(reminderId = reminderId,reminderWeekNums = hataReminder.reminderWeekNum!!))
+                }
 
+            }
         }
+
         return reminderId
     }
 
@@ -354,11 +359,18 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
-                        INNER JOIN task ON reminder_id = task_reminder_id
-                        WHERE task_due_month = :month AND task_id NOT IN  (:taskIds)
+    @Query(""" SELECT task_id,task,task_due_date,important_group_id,completed FROM task WHERE task_reminder_id IS NULL and task_due_month = :month
                          """)
-    fun getDueTasks(month: Int,taskIds: List<Long>): List<CalendarTaskItem>
+    fun getDueTasks(month: Int): List<CalendarTaskItem>
+
+    @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
+    @Ignore
+    @RewriteQueriesToDropUnusedColumns
+    @Transaction
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM task WHERE task_reminder_id IS NULL  AND 
+                     task_due_month = :month and task_due_date = :date AND task_due_year = :year
+                         """)
+    fun getDueTasksForDay(month: Int,date:Int,year:Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
@@ -403,6 +415,17 @@ interface ReminderDao {
         todaysReminders.addAll(getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
 
 
+
+
+
+
+
+        todaysReminders.addAll(getDueTasksForDay(calendar.get(Calendar.MONTH)+1,date,calendar.get(Calendar.YEAR)))
+        //println("getDueTasksForDay >>>>>>>>>>>>>>>>>>>>" + "date "+date +"month "+(calendar.get(Calendar.MONTH)+1) + " year "+calendar.get(Calendar.YEAR))
+
+        //println("getDueTasksForDay >>>>>>>>>>>>>>>>>>>>"+getDueTasksForDay(calendar.get(Calendar.MONTH)+1,date,calendar.get(Calendar.YEAR)))
+
+
         for(i in 0 until weekDays!!.size){
             //println("week day "+weekDays[i] )
             if(weekDays[i] == date){
@@ -413,7 +436,7 @@ interface ReminderDao {
                 todaysReminders.addAll(getRemindersforMonthWeekWeekNum(ReminderUtil.WhenSelectType.MONTHWEEKNUM.name,month,weekDayName,i+1))
             }
         }
-        println("reminders size " + todaysReminders.size)
+        //println("getReminders >>>>>>>>>>>>>>>> reminders size " + whenType + todaysReminders.size)
 
         emit(todaysReminders)
     }
@@ -422,13 +445,13 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    suspend fun getTasksForCalendarDate(date: Int,month: Int): Flow<List<Task>> = flow{
+    suspend fun getTasksForCalendarDate(date: Int,monthNum: Int): Flow<List<Task>> = flow{
 
         var todaysReminders = mutableListOf<Task>()
 
         var calendar = GregorianCalendar()
 
-        var month = ReminderUtil.monthsStr[calendar.get(Calendar.MONTH)+1]
+        var month = ReminderUtil.monthsStr[monthNum]
 
         var monthCalendar = ReminderUtil.getMonthCalendar(calendar.get(Calendar.MONTH)+1)
         //Log.d("DAte month ", " "+date + " " + month)
@@ -455,6 +478,7 @@ interface ReminderDao {
         //todaysReminders.addAll(getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date))
         todaysReminders.addAll( getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
         todaysReminders.addAll(getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
+        todaysReminders.addAll(getDueTasksForDay(monthNum,date,calendar.get(Calendar.YEAR)))
 
 
         for(i in 0 until weekDays!!.size){
@@ -484,7 +508,7 @@ interface ReminderDao {
                 var tasks = getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name,month!!)
 
                 tasks.forEach {
-                    addTaskItem(it.reminder_date!!,monthReminders,it)
+                    addTaskItem(it.reminder_date!!,monthReminders,it,taskIds)
                 }
             }
             /*launch(Dispatchers.IO){
@@ -506,7 +530,7 @@ interface ReminderDao {
                 var tasks = getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name)
 
                 tasks.forEach {
-                    addTaskItem(it.reminder_date!!,monthReminders,it)
+                    addTaskItem(it.reminder_date!!,monthReminders,it,taskIds)
                 }
             }
             /*launch(Dispatchers.IO){
@@ -530,7 +554,7 @@ interface ReminderDao {
                 tasks.forEach{calendarItem ->
                     var weekDays = monthCalendar.get(calendarItem.reminder_week)
                     weekDays!!.forEach {
-                        addTaskItem(it!!,monthReminders,calendarItem)
+                        addTaskItem(it!!,monthReminders,calendarItem,taskIds)
                     }
                 }
 
@@ -541,7 +565,7 @@ interface ReminderDao {
                 tasks.forEach{ calendarItem ->
                     var weekDays = monthCalendar.get(calendarItem.reminder_week)
                     weekDays!!.forEach {
-                        addTaskItem(it!!,monthReminders,calendarItem)
+                        addTaskItem(it!!,monthReminders,calendarItem,taskIds)
                     }
                 }
             }
@@ -551,7 +575,7 @@ interface ReminderDao {
                 tasks.forEach{calendarItem ->
                     var weekDays = monthCalendar.get(calendarItem.reminder_week)
 
-                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem)
+                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem,taskIds)
                 }
             }
 
@@ -561,17 +585,26 @@ interface ReminderDao {
 
                     var weekDays = monthCalendar.get(calendarItem.reminder_week)
 
-                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem)
+                    addTaskItem(weekDays!![calendarItem.reminder_weeknum!!],monthReminders,calendarItem,taskIds)
+                }
+            }
+
+            launch(Dispatchers.IO) {
+                var tasks = getDueTasks(monthNum)
+                tasks.forEach { calendarItem ->
+                    addTaskItem(calendarItem.task_due_date!!,monthReminders,calendarItem,taskIds)
                 }
             }
         }
-        println("getTasksForMonth() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+monthReminders)
+        //println("getTasksForMonth() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+monthReminders)
         emit(monthReminders)
     }
 
     private fun addTaskItem(date:Int,
                             monthReminders: TreeMap<Int,CalendarColumn>,
-                             calendarTaskItem: CalendarTaskItem){
+                             calendarTaskItem: CalendarTaskItem,
+                            taskIds: MutableList<Long>
+    ){
 
         var calendarColumn: CalendarColumn?
 
@@ -582,8 +615,15 @@ interface ReminderDao {
             calendarColumn = CalendarColumn(0,0,0, mutableListOf(calendarTaskItem))
             monthReminders.put(date!!, calendarColumn!!)
         }
-        if(calendarTaskItem.important_group_id == 22L)
+        if(calendarTaskItem.important_group_id == 2L) {
+            println("important_group_id >>>>>>>>>>>>>>>>>>>>>>>"+calendarTaskItem.important_group_id)
             ++calendarColumn!!.important
+        }
+
+        if(calendarTaskItem.task_due_date == date)
+            ++calendarColumn!!.due
+
+        taskIds.add(calendarTaskItem.task_id)
 
     }
 
@@ -627,16 +667,14 @@ interface ReminderDao {
     @RewriteQueriesToDropUnusedColumns
     @Transaction
     suspend fun getReminder(reminderId: Long): Flow<HataReminder> = flow{
-        println("getReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  "+reminderId)
-
         val reminderMaster = getReminderMaster(reminderId)
-        println("getReminder >> >>>>>>>>>>>>>>>>>> "+reminderMaster.reminderOption)
+        //println("getReminder >> >>>>>>>>>>>>>>>>>> "+reminderMaster.reminderOption)
 
         val months = mutableListOf<String>()
         getReminderMasterMonth(reminderId).reminderMonths.map {
             months.add(it.reminderMonth)
         }
-        println("getReminder >>>>>>>>>>>>>>>"+months[0])
+        //println("getReminder >>>>>>>>>>>>>>>"+months[0])
 
         val dates = mutableListOf<Int>()
         getReminderMasterDate(reminderId).reminderDates.map {

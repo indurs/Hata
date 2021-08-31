@@ -137,6 +137,7 @@ fun TaskGroup(  taskSize: Int = 0,
 @ExperimentalMaterialApi
 @Composable
 fun TaskList(
+            taskRowModifier: Modifier,
             modifier: Modifier,
             groupTask: GroupTask?,
             height: Dp,
@@ -162,7 +163,9 @@ fun TaskList(
                         .verticalScroll(taskscroll)
 
                     ) {
-                        DismissableTasks(tasks = groupTask.tasks,
+                        DismissableTasks(
+                            modifier = taskRowModifier,
+                            tasks = groupTask.tasks,
                             onTaskSelected = onTaskSelected,
                             taskListItemContentUpdates = taskListItemContentUpdates
                         )
@@ -194,6 +197,7 @@ fun TaskList(
 @ExperimentalMaterialApi
 @Composable
 private fun TaskRow(
+    modifier: Modifier = Modifier,
     task: Task,
     taskselected: Boolean,
     onTaskSelected: () -> Unit,
@@ -213,14 +217,14 @@ private fun TaskRow(
     )
 
     LaunchedEffect(dismissState.currentValue){
-        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
-        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
+        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
+        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
         if(dismissState.currentValue == DismissValue.DismissedToStart)
             taskListItemContentUpdates.onDeleteTask(task)
     }
 
     LaunchedEffect(dismissState.targetValue){
-        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
+        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
 
         if(dismissState.targetValue == DismissValue.DismissedToEnd)
             taskListItemContentUpdates.onTaskCompleted(task)
@@ -242,8 +246,8 @@ private fun TaskRow(
             },
             background = {
                 val direction = dismissState.dismissDirection ?: return@SwipeToDismiss
-                println("background >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+direction
-                )
+                //println("background >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+direction
+
                 val color by animateColorAsState(
                     when (dismissState.targetValue) {
                         DismissValue.Default -> Color.LightGray
@@ -285,6 +289,7 @@ private fun TaskRow(
                     ).value
                 ) {
                     TaskItem(
+                        modifier = modifier,
                         task = task,
                         taskListItemContentUpdates = taskListItemContentUpdates,
                         onTaskSelected = onTaskSelected,
@@ -301,6 +306,7 @@ private fun TaskRow(
 @ExperimentalAnimationApi
 @Composable
 fun TaskItem(
+            modifier: Modifier = Modifier,
             task: Task,
             taskselected: Boolean = false,
             onTaskSelected: () -> Unit,
@@ -310,9 +316,8 @@ fun TaskItem(
     val taskItemCompleteTransitionState = taskItemCompleteTransition(task = task,)
     val taskItemImportantTransitionState = taskItemImportantTransition(task = task,)
     val taskItemTodayTransitionState = taskItemTodayTransition(task = task,)
-    
 
-    var modifier =
+    var taskclickmodifier =
         if(taskselected)
             Modifier.clickable(enabled = false, onClick = { })
         else
@@ -322,7 +327,7 @@ fun TaskItem(
                                                           })
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 4.dp, bottom = 4.dp)
 
@@ -367,7 +372,7 @@ fun TaskItem(
                 }
             }
 
-            Column(modifier = modifier
+            Column(modifier = taskclickmodifier
                 .align(
                     Alignment
                         .CenterVertically
@@ -681,16 +686,19 @@ fun TaskButton(onTaskAddClick: () -> Unit){
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun DismissableTasks(tasks: List<Task>?,
+fun DismissableTasks(
+                     modifier: Modifier,
+                     tasks: List<Task>?,
                      taskselected: Boolean = false,
                      onTaskSelected: () -> Unit,
                      taskListItemContentUpdates: TaskListItemContentUpdates){
-
     Column {
         tasks?.let {
             tasks!!.mapIndexed { index, item ->
                 key(item.id){
-                    TaskRow(task = item,
+                    TaskRow(
+                            modifier = modifier,
+                            task = item,
                             taskListItemContentUpdates = taskListItemContentUpdates,
                             onTaskSelected = onTaskSelected,
                             taskselected = taskselected
@@ -729,7 +737,6 @@ private fun Modifier.swipeToDismiss(
                     val pointerId = awaitFirstDown().id
                     var change =
                         awaitHorizontalTouchSlopOrCancellation(pointerId) { change, over ->
-                            println("awaitHorizontalTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
                             val originalX = offsetX.value
                             val newValue =
@@ -746,7 +753,6 @@ private fun Modifier.swipeToDismiss(
                     while (change != null && change.pressed) {
                         change = awaitHorizontalDragOrCancellation(change.id)
                         if (change != null && change.pressed) {
-                            println("awaitHorizontalDragOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
                             val originalX = offsetX.value
                             val newValue = (originalX + change.positionChange().x)
@@ -822,12 +828,6 @@ private fun Modifier.onItemclick(
                 // Wait for drag events.
                 awaitPointerEventScope {
                     val pointerId = awaitFirstDown().id
-                    var change =
-                        awaitTouchSlopOrCancellation(pointerId) { change, over ->
-                            println("awaitTouchSlopOrCancellation>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-                        }
-
                 }
             }
         }
@@ -1233,7 +1233,6 @@ fun
         taskItemImportantTransition(
     task: Task,
 ): TaskItemTransition {
-    println("TASK GROUP >>>>>>>>>>>>>>>>>>>"+ task.importantGroupId)
     val transition = updateTransition(
         targetState = if (task.importantGroupId == 2L )
             SelectionState.Selected

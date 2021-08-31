@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -24,6 +25,8 @@ import com.oi.hata.common.ui.reminder.CustomReminderPicker
 import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.ui.TaskGroups
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import java.util.*
 
 @ExperimentalAnimationApi
@@ -52,13 +55,14 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
             val reminderViewModel = hiltViewModel<ReminderViewModel>()
             val homeViewModel = hiltViewModel<HomeViewModel>()
             val taskViewModel = hiltViewModel<TaskViewModel>()
-                HomeScreen(
-                    taskViewModel = taskViewModel,
-                    homeViewModel = homeViewModel,
-                    reminderViewModel = reminderViewModel,
-                    onTaskTabSelected = actions.onTaskTabSelected,
-                    onCustomReminderSelect = actions.onClickReminder,
-                    monthCalendar = ReminderUtil.getMonthCalendarScreen(calendar.get(Calendar.MONTH)+2)
+
+
+            HomeScreen(
+                taskViewModel = taskViewModel,
+                homeViewModel = homeViewModel,
+                reminderViewModel = reminderViewModel,
+                onTaskTabSelected = actions.onTaskTabSelected,
+                onCustomReminderSelect = actions.onClickReminder,
             )
 
         }

@@ -40,9 +40,10 @@ class HomeViewModel @Inject constructor(
     var currentTab by mutableStateOf(HataHomeScreens.Today)
     var tasksForMonth by mutableStateOf<TreeMap<Int,MutableList<CalendarTaskItem>>>(TreeMap())
     var calendar = GregorianCalendar()
-    var currentMonth by mutableStateOf(calendar.get(Calendar.MONTH)+1)
     var calendarView by mutableStateOf(true)
-    var selectedCalendarDate by mutableStateOf(0)
+    var selectedCalendarDate by mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
+    var selectedCalendarMonth by mutableStateOf(ReminderUtil.monthsStr[calendar.get(Calendar.MONTH)+1])
+    var selectedCalendarYear by mutableStateOf(calendar.get(Calendar.YEAR))
 
     fun onSelectTab(hataScreens: HataHomeScreens){
         currentTab = hataScreens
@@ -63,9 +64,9 @@ class HomeViewModel @Inject constructor(
 
     }
 
-     fun getTasksForMonth(month:Int):Flow<TreeMap<Int, CalendarColumn>> = flow{
+     fun getTasksForMonth(month:String):Flow<TreeMap<Int, CalendarColumn>> = flow{
 
-        hataTaskDatasource.getTasksForMonth(month).collect {
+        hataTaskDatasource.getTasksForMonth(ReminderUtil.monthsNum[month]!!).collect {
             emit(it)
         }
     }
@@ -77,19 +78,28 @@ class HomeViewModel @Inject constructor(
     }
 
     init{
-        Log.d("HOME VIEW MODEL","INITIAL>>>>>>>>>>>>>>>>>>*********************>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    }
 
-    fun getMonthCalendar():ArrayList<ArrayList<Int>>{
-        return ReminderUtil.getMonthCalendarScreen(8)
+        Log.d("HOME VIEW MODEL","INITIAL>>>>>>>>>>>>>>>>>>*********************>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     }
 
     fun onSelectCalendarDate(date: Int){
         selectedCalendarDate = date
     }
 
+    fun onSelectCalendarMonth(month: String){
+        selectedCalendarMonth = month
+    }
+
+    fun onSelectCalendarYear(year: Int){
+        selectedCalendarYear = year
+    }
+
     fun setCalendarView(){
         calendarView = !calendarView
+    }
+
+    fun getMonthCalendarScreen(selectedCalendarMonth: Int): ArrayList<ArrayList<Int>>{
+        return ReminderUtil.getMonthCalendarScreen(selectedCalendarMonth)
     }
 
 }

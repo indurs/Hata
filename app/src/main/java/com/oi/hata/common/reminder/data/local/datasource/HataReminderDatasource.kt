@@ -40,10 +40,10 @@ class HataReminderDatasource @Inject constructor(private val hataDatabase: HataD
 
 
     suspend fun insertTaskReminder(
-        hataReminder: HataReminder,
+        hataReminder: HataReminder?,
         task: Task
     ) {
-          println("insertTaskReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+task.taskGroupId)
+          //println("insertTaskReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+task.taskGroupId)
           hataDatabase.withTransaction {
                 val reminderId = reminderDao.insertReminder(hataReminder = hataReminder)
                 task.taskReminderId = reminderId
@@ -58,7 +58,9 @@ class HataReminderDatasource @Inject constructor(private val hataDatabase: HataD
         hataDatabase.withTransaction {
             taskDao.deleteTask(task)
             val reminderId = reminderDao.insertReminder(hataReminder = hataReminder)
-            task.taskReminderId = reminderId
+            reminderId?.let {
+                task.taskReminderId = reminderId
+            }
             taskDao.insertTask(task)
         }
     }
@@ -75,8 +77,10 @@ class HataReminderDatasource @Inject constructor(private val hataDatabase: HataD
             task = taskDao.getTask(taskId)
             if(task!=null){
                 taskUIState.task = task
-                reminderDao.getReminder(task!!.taskReminderId).collect {
-                    taskUIState.hataReminder = it
+                if(task!!.taskReminderId != null ){
+                    reminderDao.getReminder(task!!.taskReminderId!!).collect {
+                        taskUIState.hataReminder = it
+                    }
                 }
             }
         }

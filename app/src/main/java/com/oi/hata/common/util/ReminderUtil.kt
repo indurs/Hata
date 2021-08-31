@@ -1,5 +1,6 @@
 package com.oi.hata.common.util
 
+import kotlinx.coroutines.*
 import java.util.*
 import java.util.HashMap
 
@@ -9,44 +10,50 @@ import java.util.ArrayList
 object ReminderUtil {
 
     var monthsStr = mapOf(1 to "Jan", 2 to "Feb", 3 to "Mar", 4 to "Apr", 5 to "May", 6 to "Jun", 7 to "Jul", 8 to "Aug", 9 to "Sep", 10 to "Oct", 11 to "Nov", 12 to "Dec")
+    var monthsNum = mapOf("Jan" to 1, "Feb" to 2, "Mar" to 3, "Apr" to 4, "May" to 5, "Jun" to 6, "Jul" to 7, "Aug" to 8, "Sep" to 9, "Oct" to 10, "Nov" to 11, "Dec" to 12)
+    var monthsAbr = mapOf("Jan" to "January", "Feb" to "February", "Mar" to "March", "Apr" to "April", "May" to "May", "Jun" to "June", "Jul" to "July", "Aug" to "August",
+        "Sep" to "September", "Oct" to "October", "Nov" to "November", "Dec" to "December")
 
 
     fun getMonthCalendarScreen(month: Int): ArrayList<ArrayList<Int>>
     {
-
-        var calendar = GregorianCalendar()
-        var date = calendar.get(Calendar.DAY_OF_MONTH)
-
-        var year = calendar.get(Calendar.YEAR)
-
-
-        var d = 0
         val datesByDay: ArrayList<ArrayList<Int>> = ArrayList<ArrayList<Int>>()
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
-        datesByDay.add(ArrayList())
+        CoroutineScope(Dispatchers.IO).launch {
+            var calendar = GregorianCalendar()
+            var date = calendar.get(Calendar.DAY_OF_MONTH)
 
-        if(month == 2 && isLeapYear(year))
-            days[month] = 29
+            var year = calendar.get(Calendar.YEAR)
 
-        var weekDay = 0
-        var weekName = ""
-        for(i in 1 .. days[month]){
-            weekDay = weekDay(month,i,year)
-            if(i == 1){
-                if(weekDay > 0){
-                    for(j in 0 until weekDay){
-                        datesByDay[j].add(0)
+
+            var d = 0
+
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+            datesByDay.add(ArrayList())
+
+            if(month == 2 && isLeapYear(year))
+                days[month] = 29
+
+            var weekDay = 0
+            var weekName = ""
+            for(i in 1 .. days[month]){
+                weekDay = weekDay(month,i,year)
+                if(i == 1){
+                    if(weekDay > 0){
+                        for(j in 0 until weekDay){
+                            datesByDay[j].add(0)
+                        }
                     }
                 }
+                //println(WEEKNAMES.values()[weekDay].toString() +" "+WEEKNAMES.values()[weekDay].ordinal)
+                datesByDay[WEEKNAMES.values()[weekDay].ordinal]!!.add(i)
             }
-            println(WEEKNAMES.values()[weekDay].toString() +" "+WEEKNAMES.values()[weekDay].ordinal)
-            datesByDay[WEEKNAMES.values()[weekDay].ordinal]!!.add(i)
         }
+
         return datesByDay
     }
 

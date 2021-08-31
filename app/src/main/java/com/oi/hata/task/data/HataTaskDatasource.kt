@@ -33,7 +33,7 @@ class HataTaskDatasource @Inject constructor(private val hataDatabase: HataDatab
     suspend fun updateTask(
         task: Task
     ){
-        println(" updateTask TASK GROUP >>>>>>importantGroupId "+task.importantGroupId + " " + task.todaytask)
+        //println(" updateTask TASK GROUP >>>>>>importantGroupId "+task.importantGroupId + " " + task.todaytask)
         hataDatabase.withTransaction {
             taskDao.deleteTask(task)
             taskDao.insertTask(task)
@@ -42,6 +42,6 @@ class HataTaskDatasource @Inject constructor(private val hataDatabase: HataDatab
 
     suspend fun getTasksForMonth(month: Int):Flow<TreeMap<Int, CalendarColumn>> = reminderDao.getTasksForMonth(month)
 
-    suspend fun getTasksForCalendarDate(month: Int,date:Int) = reminderDao.getTasksForCalendarDate(month = month,date = date)
+    suspend fun getTasksForCalendarDate(month: Int,date:Int) = reminderDao.getTasksForCalendarDate(monthNum = month,date = date)
 
 }

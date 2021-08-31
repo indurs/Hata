@@ -6,18 +6,20 @@ import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +30,9 @@ import com.oi.hata.task.data.model.CalendarColumn
 import com.oi.hata.task.data.model.Task
 import com.oi.hata.task.ui.*
 import com.oi.hata.task.ui.TaskContentUpdates
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.time.Year
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -53,7 +58,7 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
                reminderViewModel: ReminderViewModel,
                onTaskTabSelected: () -> Unit,
                onCustomReminderSelect: () -> Unit,
-               monthCalendar: java.util.ArrayList<java.util.ArrayList<Int>>
+
 ){
 
     val todayRemindersState = homeViewModel.getReminders(ReminderUtil.TODAY).collectAsState(initial = ArrayList())
@@ -63,7 +68,7 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
     )
 
     val tomorrowRemindersState = homeViewModel.getReminders(ReminderUtil.TOMORROW).collectAsState(initial = ArrayList())
-    val tasksForMonthState = homeViewModel.getTasksForMonth(homeViewModel.currentMonth).collectAsState(
+    val tasksForMonthState = homeViewModel.getTasksForMonth(homeViewModel.selectedCalendarMonth!!).collectAsState(
         initial = TreeMap()
     )
 
@@ -85,9 +90,12 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
         onSelectCalendarDate = { homeViewModel.onSelectCalendarDate(it) },
         setCalendarView = { homeViewModel.setCalendarView() },
         calendarView = homeViewModel.calendarView,
-        monthCalendar = monthCalendar,
+        monthCalendar = homeViewModel.getMonthCalendarScreen(selectedCalendarMonth = ReminderUtil.monthsNum[homeViewModel.selectedCalendarMonth]!!),
         tasksForMonth = tasksForMonthState.value!!,
-        selectedCalendarDate = homeViewModel.selectedCalendarDate
+        selectedCalendarDate = homeViewModel.selectedCalendarDate,
+        selectedCalendarMonth = homeViewModel.selectedCalendarMonth!!,
+        onSelectCalendarMonth = { homeViewModel.onSelectCalendarMonth(it) },
+        selectedCalendarYear = homeViewModel.selectedCalendarYear
     )
 
     HomeScreen(
@@ -140,61 +148,31 @@ private fun HomeScreen(
 ) {
     var calendarhorscroll = rememberScrollState()
 
+    HomeTabContent(
+        currentTab = currenttab,
+        onTabChange,
+        tabs = HataHomeScreens.values().map { it.title },
+        scaffoldState = scaffoldState,
+        nocontent = nocontent,
+        todayReminders = todayReminders,
+        tomorrowReminders = tomorrowReminders,
+        onTaskSelected = onTaskSelected,
+        taskselected = taskselected,
+        taskListItemContentUpdates = taskListItemContentUpdates,
+        calhorscrollState = calendarhorscroll,
+        calendarContentUpdates = calendarContentUpdates,
+        calendarDateTasksState = calendarDateTasksState,
+        reminderContentUpdates = reminderContentUpdates,
+        taskContentUpdates = taskContentUpdates,
+        customReminderContentUpdates = customReminderContentUpdates,
+        diaryselected = diaryselected,
+        onDiarySelected = onDiarySelected,
+        travelselected = travelselected,
+        onTravelSelected = onTravelSelected,
+        onTaskTabSelected = onTaskTabSelected
+    )
 
-       Box() {
-
-           Column() {
-               Surface(modifier = Modifier.fillMaxSize()) {
-
-                   HomeTabContent(
-                       currentTab = currenttab,
-                       onTabChange,
-                       tabs = HataHomeScreens.values().map { it.title },
-                       scaffoldState = scaffoldState,
-                       nocontent = nocontent,
-                       todayReminders = todayReminders,
-                       tomorrowReminders = tomorrowReminders,
-                       onTaskSelected = onTaskSelected,
-                       taskselected = taskselected,
-                       taskListItemContentUpdates = taskListItemContentUpdates,
-                       calhorscrollState = calendarhorscroll,
-                       calendarContentUpdates = calendarContentUpdates,
-                       calendarDateTasksState = calendarDateTasksState
-                   )
-
-               }
-
-           }
-
-           AnimatedVisibility(
-               visible = taskselected,
-               Modifier.align(Alignment.BottomCenter)
-           )
-           {
-               ReminderBar(
-                   reminderContentUpdates = reminderContentUpdates,
-                   customReminderContentUpdates = customReminderContentUpdates,
-                   taskContentUpdates = taskContentUpdates,
-                   onTaskSelected = { onTaskSelected() },
-                   taskselected = taskselected
-               )
-           }
-           AnimatedVisibility(
-               visible = !taskselected,
-               Modifier.align(Alignment.BottomCenter)
-           ) {
-               BottomBar(
-                   diaryselected = diaryselected,
-                   onDiarySelected = onDiarySelected,
-                   travelselected = travelselected,
-                   onTravelSelected = onTravelSelected,
-                   onTaskTabSelected = onTaskTabSelected
-               )
-           }
-
-       }
 }
-
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -212,56 +190,37 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                            calhorscrollState:ScrollState,
                            calendarContentUpdates: CalendarContentUpdates,
                            calendarDateTasksState: List<Task>,
-
-){
-
+                           reminderContentUpdates: ReminderContentUpdates,
+                           customReminderContentUpdates: CustomReminderContentUpdates,
+                           taskContentUpdates: TaskContentUpdates,
+                           diaryselected: Boolean,
+                           onDiarySelected: (Boolean) -> Unit,
+                           travelselected: Boolean,
+                           onTravelSelected: (Boolean) -> Unit,
+                           onTaskTabSelected: () -> Unit,
+                           ){
     val selectedTabIndex = currentTab.ordinal
 
     var tasksScrollState = rememberScrollState()
+    var homescrollState = rememberScrollState()
 
     val tabsOffset = with(LocalDensity.current) { HOME_TABS_OFFSET.toPx() }
 
-    var offset = (tabsOffset - tasksScrollState.value)
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .scrollable(
+            enabled = true,
+            state = tasksScrollState,
+            orientation = Orientation.Vertical,
+            reverseDirection = true
+        )
+        .background(color = MaterialTheme.colors.background)) {
 
-    val coroutineScope = rememberCoroutineScope()
-    Column(
-        Modifier
-            .fillMaxWidth()
-            ) {
-
-        Row(modifier = Modifier
-            .background(color = MaterialTheme.colors.surface)
-            .fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
-            Image(modifier = Modifier
-                .size(48.dp)
-                .padding(8.dp),painter = painterResource(R.drawable.cloudy), contentDescription = null)
+        Box(){
+            Spacer(modifier = Modifier.heightIn(50.dp))
         }
-
-        ScrollableTabRow(
-            selectedTabIndex = selectedTabIndex,
-            indicator = {},
-            divider = {},
-
-
-            ) {
-            tabs.forEachIndexed { index, tab ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick =  {
-                        onTabChange(HataHomeScreens.values()[index])
-                               },
-                    //text = { tabContent.homescreen.title }
-                ){
-                    ChoiceChipContent(
-                        text = tab,
-                        selected = index == selectedTabIndex,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxSize()){
+            Spacer(modifier = Modifier.height(58.dp))
 
 
             when(currentTab){
@@ -294,8 +253,80 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                     )
                 }
             }
+        }
+        Column() {
+            Box(){
+                Column(Modifier.fillMaxWidth()
+                ) {
 
-    }
+                    Row(
+                        modifier = Modifier
+                            .background(color = MaterialTheme.colors.surface)
+                            .fillMaxWidth(), horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(8.dp),
+                            painter = painterResource(R.drawable.cloudy),
+                            contentDescription = null
+                        )
+                    }
+
+                    ScrollableTabRow(
+                        selectedTabIndex = selectedTabIndex,
+                        indicator = {},
+                        divider = {},
+
+
+                        ) {
+                        tabs.forEachIndexed { index, tab ->
+                            Tab(
+                                selected = selectedTabIndex == index,
+                                onClick = {
+                                    onTabChange(HataHomeScreens.values()[index])
+                                },
+                                //text = { tabContent.homescreen.title }
+                            ) {
+                                ChoiceChipContent(
+                                    text = tab,
+                                    selected = index == selectedTabIndex,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+                AnimatedVisibility(
+                    visible = taskselected,
+                    Modifier.align(Alignment.BottomCenter)
+                )
+                {
+                    ReminderBar(
+                        reminderContentUpdates = reminderContentUpdates,
+                        customReminderContentUpdates = customReminderContentUpdates,
+                        taskContentUpdates = taskContentUpdates,
+                        onTaskSelected = { onTaskSelected() },
+                        taskselected = taskselected
+                    )
+                }
+                AnimatedVisibility(
+                    visible = !taskselected,
+                    Modifier.align(Alignment.BottomCenter)
+                ) {
+                    BottomBar(
+                        diaryselected = diaryselected,
+                        onDiarySelected = onDiarySelected,
+                        travelselected = travelselected,
+                        onTravelSelected = onTravelSelected,
+                        onTaskTabSelected = onTaskTabSelected
+                    )
+                }
+            }
 
 }
 
@@ -353,13 +384,17 @@ private fun TodayScreen(onTaskSelected: () -> Unit,
 ){
 
     Column() {
+        Spacer(modifier = Modifier.height(TODAY_SCREEN_OFFSET))
         Text(
             text = "Tasks",
             style = MaterialTheme.typography.subtitle1,
             color = colorResource(id = R.color.taskdivider)
         )
 
+        var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha=0.98f))
+
         DismissableTasks(
+            modifier = modifier,
             tasks = todayreminders,
             onTaskSelected = onTaskSelected,
             taskselected = taskselected,
@@ -381,55 +416,34 @@ fun HataCalendar(
     taskselected: Boolean,
     tasksScrollState: ScrollState
 ){
-    Box {
 
-        HataCalendarSection(
-            tasksScrollState = tasksScrollState,
-            calendarContentUpdates = calendarContentUpdates,
-            calhorscrollState = calhorscrollState,
-        )
 
-       /* TaskSectionTitle(
-            date = calendarContentUpdates.selectedCalendarDate,
-            tasksScrollState = tasksScrollState)*/
+            Box {
+                HataCalendarSection(
+                    tasksScrollState = tasksScrollState,
+                    calendarContentUpdates = calendarContentUpdates,
+                    calhorscrollState = calhorscrollState,
+                )
 
-        CalendarTasksSection(
-            tasksScrollState = tasksScrollState,
-            onTaskSelected=onTaskSelected,
-            taskListItemContentUpdates = taskListItemContentUpdates,
-            taskselected = taskselected,
-            calendarDateTasks = calendarDateTasksState,
-            date = calendarContentUpdates.selectedCalendarDate
-        )
+                CalendarTasksSection(
+                    tasksScrollState = tasksScrollState,
+                    onTaskSelected = onTaskSelected,
+                    taskListItemContentUpdates = taskListItemContentUpdates,
+                    taskselected = taskselected,
+                    calendarDateTasks = calendarDateTasksState,
+                    date = calendarContentUpdates.selectedCalendarDate
+                )
 
-    }
-}
+            }
 
-@Composable
-fun TaskSectionTitle(
-                    date: Int,
-                    tasksScrollState: ScrollState
-                    ){
 
-    val titleOffset = with(LocalDensity.current) { (CALENDAR_SIZE+CAL_TASK_TITLE_SPACE).toPx() }
-
-    val offset = (titleOffset - tasksScrollState.value)
-
-    Column(modifier = Modifier.graphicsLayer { translationY = offset }) {
-        //Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE))
-        Text(
-            text = date.toString(),
-            style = MaterialTheme.typography.overline,
-            color = colorResource(id = R.color.taskdivider )
-        )
-    }
 }
 
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-private fun CalendarTasksSection(
+private  fun CalendarTasksSection(
                                 date:Int,
                                 tasksScrollState: ScrollState,
                                 onTaskSelected: () -> Unit,
@@ -437,23 +451,49 @@ private fun CalendarTasksSection(
                                 taskselected: Boolean,
                                 calendarDateTasks: List<Task>?,
                         ){
+        var coroutineScope = rememberCoroutineScope()
 
-    val calendarOffset = with(LocalDensity.current) { CAL_CALENDAR_OFFSET.toPx() }
-    var offset = (calendarOffset - tasksScrollState.value)
 
-    var titileSize = (MIN_TITLE_SIZE + tasksScrollState.value).coerceAtMost(MAX_TITLE_SIZE)
+        var taskOffset = with(LocalDensity.current) { CAL_TASKS_TITLE_OFFSET.toPx() }
+        var offset = (taskOffset-tasksScrollState.value)
+        var titileSize = (MIN_TITLE_SIZE + tasksScrollState.value).coerceAtMost(MAX_TITLE_SIZE)
+
+        var today = GregorianCalendar().get(Calendar.DAY_OF_MONTH)
+
+
+        SideEffect {
+
+            if(offset < 100 ){
+                coroutineScope.launch {
+                    tasksScrollState.scrollTo(1)
+                    offset += tasksScrollState.value
+                }
+
+            }
+        }
 
         Column(modifier = Modifier
-            .fillMaxHeight()
-            .verticalScroll(tasksScrollState)) {
-            Spacer(modifier = Modifier.height(CAL_TASK_TITLE_SPACE + CALENDAR_SIZE ))
+            .graphicsLayer { translationY = offset }
+            .scrollable(
+                tasksScrollState,
+                orientation = Orientation.Vertical,
+                reverseDirection = true
+            )
+
+            ) {
+
             Text(
-                text = "25",
+                modifier = Modifier.padding(start = 8.dp,bottom = 8.dp),
+                text = if(date != 0) date.toString() else "",
                 fontSize = titileSize.sp,
                 style = MaterialTheme.typography.overline,
-                color = colorResource(id = R.color.taskdivider )
+                color = if(date == today) colorResource(id = R.color.weekname ) else Color.White
             )
+
+
+            var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
             DismissableTasks(
+                modifier = modifier,
                 tasks = calendarDateTasks,
                 onTaskSelected = onTaskSelected,
                 taskselected = taskselected,
@@ -461,7 +501,6 @@ private fun CalendarTasksSection(
             )
             Spacer(modifier = Modifier.height(48.dp))
         }
-
 
 }
 
@@ -474,12 +513,17 @@ fun HataCalendarSection(
     calhorscrollState:ScrollState
 ){
     val calendarOffset = with(LocalDensity.current) { CAL_CALENDAR_OFFSET.toPx() }
-    val calMinOffset = with(LocalDensity.current) { (CAL_CALENDAR_OFFSET - 120.dp).toPx() }
 
     var offset = (calendarOffset - tasksScrollState.value)
 
+    var taskOffset = with(LocalDensity.current) { CAL_TASKS_TITLE_OFFSET.toPx() }
+    val calMinOffset = taskOffset/2
+
+    var taskoffset = (taskOffset-tasksScrollState.value)
+
+
     AnimatedVisibility(
-        visible = offset > calMinOffset
+        visible = taskoffset > calMinOffset,
     ) {
         HataCalendarSectionContent(
             tasksScrollState = tasksScrollState,
@@ -495,46 +539,172 @@ fun HataCalendarSection(
 @ExperimentalMaterialApi
 @Composable
 private fun HataCalendarSectionContent(
+
     tasksScrollState: ScrollState,
     calendarContentUpdates: CalendarContentUpdates,
     calhorscrollState:ScrollState,
     offset: Float
 ){
+    var monthChoose by rememberSaveable { (mutableStateOf(false)) }
 
     Column(
         Modifier
             .graphicsLayer { translationY = offset }
             .fillMaxWidth()
-            .horizontalScroll(calhorscrollState)) {
+            .horizontalScroll(calhorscrollState),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-                Row( Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
-                    ReminderUtil.WEEKNAMES.values().forEach {
-                        CalendarWeekName(week = it.name)
-                    }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)) {
+                CalendarMonthYearSection(
+                    calendarContentUpdates = calendarContentUpdates,
+                    onMonthChoose = { monthChoose = !monthChoose }
+                )
+            }
+            AnimatedVisibility(visible = monthChoose) {
+                MonthsSurface(monthChoose = monthChoose,onMonthChoose = { monthChoose = !monthChoose },calendarContentUpdates)
+            }
+            Row( Modifier.fillMaxWidth()) {
+                ReminderUtil.WEEKNAMES.values().forEach {
+                    CalendarWeekName(week = it.name)
                 }
 
-                Column() {
-                    for (i in 0..5){
-                        Row(Modifier.fillMaxWidth(),){
-                            for(j in 0..6){
-                                var weedDayarray = calendarContentUpdates.monthCalendar[j]
+            }
 
-                                if(i < weedDayarray.size){
-                                    if(calendarContentUpdates.monthCalendar[j][i] == 0){
-                                        CalendarColumnItem(num = 0, null)
-                                    }
+            Column() {
+                for (i in 0..5){
+                    Row(Modifier.fillMaxWidth(),){
+                        for(j in 0..6){
+                            var weedDayarray = calendarContentUpdates.monthCalendar[j]
+
+                            if(i < weedDayarray.size){
+                                if(calendarContentUpdates.monthCalendar[j][i] == 0){
+                                    CalendarColumnItem(date = 0, setCalendarView = {},onSelectCalendarDate = {},calendarColumn = null)
                                 }
-                                if(i < weedDayarray.size && calendarContentUpdates.monthCalendar[j][i] != 0 ) {
-                                    CalendarColumnItem(
-                                        num = calendarContentUpdates.monthCalendar[j][i] ,
-                                        calendarContentUpdates = calendarContentUpdates)
-                                }
+                            }
+                            if(i < weedDayarray.size && calendarContentUpdates.monthCalendar[j][i] != 0 ) {
+                                CalendarColumnItem(
+                                    date = calendarContentUpdates.monthCalendar[j][i] ,
+                                    setCalendarView = calendarContentUpdates.setCalendarView,
+                                    onSelectCalendarDate = calendarContentUpdates.onSelectCalendarDate,
+                                    calendarColumn = calendarContentUpdates.tasksForMonth.get(calendarContentUpdates.monthCalendar[j][i])
+                                )
                             }
                         }
                     }
                 }
+            }
     }
 
+}
+
+@ExperimentalAnimationApi
+@Composable
+fun CalendarMonthYearSection(
+                            onMonthChoose: ()->Unit,
+                            calendarContentUpdates: CalendarContentUpdates,
+                           ){
+
+
+
+    Column(Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row() {
+            Column(
+                modifier = Modifier.clickable(enabled = true,onClick = {
+                    println("CLICKWED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                    onMonthChoose()
+                })
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = colorResource(id = R.color.cal_month_sel),
+                    elevation = 2.dp,
+                    border = BorderStroke(1.dp,colorResource(id = R.color.jan))) {
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp,top=8.dp,end=16.dp,bottom = 8.dp),
+                        text = ReminderUtil.monthsAbr[calendarContentUpdates.selectedCalendarMonth].toString(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.caption
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column() {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = colorResource(id = R.color.cal_month_sel),
+                    border = BorderStroke(1.dp,colorResource(id = R.color.jan))) {
+                    Text(
+                        modifier = Modifier.padding(start = 16.dp,top=8.dp,end=16.dp,bottom = 8.dp),
+                        text = calendarContentUpdates.selectedCalendarYear.toString(),
+                        color = Color.White,
+                        style = MaterialTheme.typography.caption
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun MonthsSurface(
+
+                    monthChoose: Boolean,
+                    onMonthChoose: ()->Unit,
+                    calendarContentUpdates: CalendarContentUpdates
+){
+    Column(
+        Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+
+
+        Column() {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(){
+                for(i in 1..6){
+                    Month(ReminderUtil.monthsStr[i]!!,onMonthChoose,calendarContentUpdates)
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(){
+                for(i in 7..12){
+                    Month(ReminderUtil.monthsStr[i]!!,onMonthChoose,calendarContentUpdates)
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+            }
+        }
+    }
+
+}
+
+@Composable
+fun Month(
+    month: String,
+    onMonthChoose: ()->Unit,
+    calendarContentUpdates: CalendarContentUpdates
+){
+    Box(modifier = Modifier.padding(start=4.dp,end=2.dp,top=2.dp,bottom = 4.dp)){
+        Surface(shape = RoundedCornerShape(70),border = BorderStroke(1.dp, colorResource(id = R.color.jul))) {
+            Column(Modifier.clickable {
+                onMonthChoose()
+                calendarContentUpdates.onSelectCalendarMonth(month)
+            }) {
+                Text(
+                    modifier = Modifier.padding(start=12.dp,end=12.dp,top=4.dp,bottom = 4.dp),
+                    text = month,
+                    style = MaterialTheme.typography.caption,
+                    fontSize = 10.sp
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -549,27 +719,35 @@ fun CalendarWeekName(week: String){
         Column(modifier = wkNameSurfaceModifier,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = week)
+            Text(text = week, color = colorResource(id = R.color.cal_col), style = MaterialTheme.typography.h5, fontSize = 12.sp)
         }
-
-
 }
 
 @ExperimentalMaterialApi
 @Composable
-fun CalendarColumnItem(num: Int, calendarContentUpdates: CalendarContentUpdates?){
+fun CalendarColumnItem(date: Int,
+                       calendarColumn: CalendarColumn?,
+                       setCalendarView: ()->Unit,
+                       onSelectCalendarDate: (Int) -> Unit,){
 
     var daySurfaceModifier: Modifier = Modifier.size(CAL_DATE_COL_SIZE)
 
-    if(num == 0){
+    var today = GregorianCalendar().get(Calendar.DAY_OF_MONTH)
+
+    if(date == 0){
         Text(text = " ",daySurfaceModifier.padding(4.dp))
     }else{
         CalendarColumnSurface(
-            modifier = daySurfaceModifier.background(Color.White),
-            calendarContentUpdates = calendarContentUpdates,
-            date = num
+            modifier = daySurfaceModifier,
+            calendarColumn = calendarColumn,
+            setCalendarView = setCalendarView,
+            onSelectCalendarDate = onSelectCalendarDate,
+            date = date
         ){
-            Text(text = num.toString(), color = Color.Black)
+            Text(
+                text = date.toString(),
+                color = if(date == today) colorResource(id = R.color.cal_col) else Color.White,
+                style = MaterialTheme.typography.caption)
         }
     }
 }
@@ -578,31 +756,75 @@ fun CalendarColumnItem(num: Int, calendarContentUpdates: CalendarContentUpdates?
 @Composable
 fun CalendarColumnSurface(
                           modifier: Modifier,
-                          calendarContentUpdates: CalendarContentUpdates?,
+                          calendarColumn: CalendarColumn?,
+                          setCalendarView: ()->Unit,
+                          onSelectCalendarDate: (Int) -> Unit,
                           date: Int,
                           content: @Composable () -> Unit
 ){
-    Box(contentAlignment = Alignment.Center){
+    Box(
+        contentAlignment = Alignment.Center){
         Surface( modifier = modifier.padding(4.dp),
-            color  = colorResource(id = R.color.sep),
+            color  = colorResource(id = R.color.white),
             shape= RoundedCornerShape(8.dp),
             elevation = 1.dp) {
 
         }
-        Surface(modifier = modifier.padding(4.dp),
-            onClick = { calendarContentUpdates!!.setCalendarView()
-                        calendarContentUpdates!!.onSelectCalendarDate(date)
+        Surface(modifier = modifier
+            .background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.80f))
+            .padding(4.dp)
+            ,color = colorResource(id = R.color.bottombar),
+            onClick = {
+                        setCalendarView()
+                        onSelectCalendarDate(date)
                       },
-            color = Color.White,
-            shape = RoundedCornerShape(4.dp),
+            shape = if(calendarColumn!=null && calendarColumn.due>0) RoundedCornerShape(4.dp,20.dp,4.dp,4.dp) else RoundedCornerShape(4.dp),
             elevation = 1.dp
         ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+
+            Column(verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
                 content()
             }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                if (calendarColumn != null) {
+                    if(calendarColumn.important > 0){
+                        Column(
+                        ) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Icon(
+                                modifier = Modifier
+                                    .size(6.dp),
+                                painter = painterResource(R.drawable.ic_action_star_full),
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.header1)
+                            )
+                        }
+                    }
+                }
+            }
+
+            /*if (calendarColumn != null) {
+
+                if(calendarColumn.due > 0){
+                    Column(
+                        verticalArrangement = Arrangement.Bottom,
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(6.dp),
+                            color = colorResource(id = R.color.jul),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+
+                        }
+                    }
+                }
+
+            }*/
         }
 
     }
@@ -716,6 +938,7 @@ fun DatePicker(){
 
 }*/
 
+
 /*@Preview
 @Composable
 fun SamplePreview(){
@@ -725,6 +948,9 @@ fun SamplePreview(){
 data class CalendarContentUpdates(
     val onSelectCalendarDate: (Int) -> Unit,
     val selectedCalendarDate: Int,
+    val selectedCalendarMonth: String,
+    val onSelectCalendarMonth: (String) -> Unit,
+    val selectedCalendarYear: Int,
     val setCalendarView: () -> Unit,
     val calendarView: Boolean,
     val monthCalendar: java.util.ArrayList<java.util.ArrayList<Int>>,
@@ -734,11 +960,16 @@ data class CalendarContentUpdates(
 private val CAL_DATE_COL_SIZE = 56.dp
 private val CALENDAR_SIZE = CAL_DATE_COL_SIZE * 6
 private val TASK_SECTION_TITLE_SIZE = 56.dp
-private val CAL_TASK_TITLE_SPACE = 48.dp
-private val CAL_CALENDAR_OFFSET = 48.dp
+private val CAL_TASK_TITLE_SPACE = 120.dp
+private val CAL_CALENDAR_OFFSET = 104.dp
+private val TODAY_SCREEN_OFFSET = 116.dp
 private val CAL_MIN_OFFSET = CAL_CALENDAR_OFFSET/2
 private val HOME_TABS_OFFSET = 16.dp
-private val CAL_TASKS_TITLE_OFFSET = CALENDAR_SIZE + CAL_TASK_TITLE_SPACE
+private val MON_YEAR_SECTION_OFFSET = 72.dp
+private val CAL_TASKS_TITLE_OFFSET = CALENDAR_SIZE + CAL_TASK_TITLE_SPACE + MON_YEAR_SECTION_OFFSET
+
+
+private val TASKS_OFFSET = 148.dp
 
 private val MIN_TITLE_SIZE = 16
 private val MAX_TITLE_SIZE = 48

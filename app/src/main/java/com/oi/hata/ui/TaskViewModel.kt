@@ -80,6 +80,8 @@ class TaskViewModel @Inject constructor(
         var localDateTime = LocalDateTime.of(year,month,day,0,0)
 
         //var offsetDateTime = OffsetDateTime.now()
+
+        println("day "+day + " month "+month +"year "+year)
         dueDate = day
         dueMonth = month
         dueYear = year
@@ -88,7 +90,7 @@ class TaskViewModel @Inject constructor(
 
     fun saveTask(groupId: Long){
         viewModelScope.launch {
-            if(taskUIState.task != null && taskUIState.task!!.taskReminderId > 0 ){
+            if(taskUIState.task != null ){
                 taskUIState.task!!.task = taskTxt
                 taskUIState.task!!.taskDueDate = dueDate
                 hataReminderDatasource.updateTaskReminder(
@@ -102,7 +104,7 @@ class TaskViewModel @Inject constructor(
                     impGroupid = 22
 
                 hataReminderDatasource.insertTaskReminder(
-                    hataReminder = taskUIState.hataReminder!!,
+                    hataReminder = taskUIState.hataReminder,
                     task = Task(task = taskTxt,
                         taskDueDate = dueDate,
                         taskDueMonth = dueMonth,
@@ -148,7 +150,7 @@ class TaskViewModel @Inject constructor(
     }
 
     fun resetReminder(){
-        println("resetReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        //println("resetReminder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         hataReminderValues = null
     }
 
@@ -189,7 +191,7 @@ class TaskViewModel @Inject constructor(
     }
 
     fun onTaskSelected(){
-        println("onTaskSelected >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        //println("onTaskSelected >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         taskselected = !taskselected
     }
 
@@ -209,7 +211,7 @@ class TaskViewModel @Inject constructor(
     }
 
     fun onTaskSetForToday(task: Task){
-        println("onTaskSetForToday>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+  task.todaytask)
+        //println("onTaskSetForToday>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+  task.todaytask)
 
         viewModelScope.launch {
             updateTaskAsToday(task)
