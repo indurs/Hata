@@ -206,7 +206,7 @@ private fun TaskRow(
     var unread by remember { mutableStateOf(false) }
     var delete by remember { mutableStateOf(false) }
 
-
+    println("TaskRow >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     val dismissState = rememberDismissState(
         confirmStateChange = {
             if (it == DismissValue.DismissedToEnd) unread = !unread
@@ -217,14 +217,14 @@ private fun TaskRow(
     )
 
     LaunchedEffect(dismissState.currentValue){
-        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
-        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.currentValue + " TAASK "+task.task)
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+dismissState.dismissDirection)
         if(dismissState.currentValue == DismissValue.DismissedToStart)
             taskListItemContentUpdates.onDeleteTask(task)
     }
 
     LaunchedEffect(dismissState.targetValue){
-        //println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
+        println("LaunchedEffect >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ dismissState.targetValue + " TAASK "+task.task)
 
         if(dismissState.targetValue == DismissValue.DismissedToEnd)
             taskListItemContentUpdates.onTaskCompleted(task)
@@ -246,7 +246,7 @@ private fun TaskRow(
             },
             background = {
                 val direction = dismissState.dismissDirection ?: return@SwipeToDismiss
-                //println("background >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+direction
+                println("background >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>TARGET"+ dismissState.targetValue + " TAASK "+task.task +"DIRECTION "+direction)
 
                 val color by animateColorAsState(
                     when (dismissState.targetValue) {
@@ -325,7 +325,7 @@ fun TaskItem(
                                                             onTaskSelected()
                                                             taskListItemContentUpdates.onTaskItemClick(task.id)
                                                           })
-
+    println("TaskItem >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -353,6 +353,7 @@ fun TaskItem(
 
             ) {
                 Box(
+                    modifier = Modifier.clip(CircleShape)
                 ){
                     Icon(
                         modifier = Modifier.size(28.dp),
@@ -424,14 +425,14 @@ fun TaskItem(
                     }
                     }
 
-                    Box(modifier = Modifier.clickable { taskListItemContentUpdates.onTaskImportant(task) }){
+                    Box(modifier = Modifier.clip(CircleShape).clickable { taskListItemContentUpdates.onTaskImportant(task) }){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_star),
                             modifier = Modifier
                                 .padding(end = 16.dp)
                                 .size(24.dp),
                             contentDescription = null,
-                            tint = colorResource(id = R.color.sample)
+                            tint = MaterialTheme.colors.primary
                         )
                         Icon(
                             modifier = Modifier
@@ -537,7 +538,7 @@ private fun AddGroupButton(groupContentUpdates: GroupContentUpdates){
                         AddGroup(groupContentUpdates = groupContentUpdates)
                     }
                     AnimatedVisibility(visible = !groupContentUpdates.addGroupSelected) {
-                        Row() {
+                        Row(modifier = Modifier.padding(4.dp)) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_action_add),
                                 modifier = Modifier
@@ -545,10 +546,10 @@ private fun AddGroupButton(groupContentUpdates: GroupContentUpdates){
                                     .align(Alignment.CenterVertically)
                                     .padding(start = 4.dp),
                                 contentDescription = null,
-                                tint = colorResource(id = R.color.sample)
+                                tint = MaterialTheme.colors.primary
                             )
                             Text(
-                                modifier = Modifier.padding(top=4.dp,bottom = 4.dp,start = 4.dp,end = 8.dp),
+                                modifier = Modifier.padding(top=2.dp,bottom = 2.dp,start = 4.dp,end = 8.dp),
                                 text = "Group",
                                 style = MaterialTheme.typography.overline,
                                 fontSize = 12.sp,
@@ -573,7 +574,7 @@ private fun AddGroup(groupContentUpdates: GroupContentUpdates){
 
         BasicTextField( value = groupContentUpdates.newGroup,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(4.dp)
                 .size(height = 20.dp, width = 160.dp),
             onValueChange = { groupContentUpdates.onAddNewGroup(it)},
             textStyle = TextStyle(color = Color.White, ),
@@ -591,7 +592,7 @@ private fun AddGroup(groupContentUpdates: GroupContentUpdates){
                     onClick = { groupContentUpdates.saveNewGroup(groupContentUpdates.newGroup) })
             ,
             contentDescription = null,
-            tint = colorResource(id = R.color.sample)
+            tint = MaterialTheme.colors.primary
         )
         Icon(
             painter = painterResource(R.drawable.ic_baseline_close_24),
@@ -602,7 +603,7 @@ private fun AddGroup(groupContentUpdates: GroupContentUpdates){
                 .clickable { groupContentUpdates.onAddgroupSelected() }
             ,
             contentDescription = null,
-            tint = colorResource(id = R.color.sample)
+            tint = MaterialTheme.colors.primary
         )
     }
 }
@@ -688,11 +689,13 @@ fun TaskButton(onTaskAddClick: () -> Unit){
 @Composable
 fun DismissableTasks(
                      modifier: Modifier,
+                     tasklistModifier: Modifier = Modifier,
                      tasks: List<Task>?,
                      taskselected: Boolean = false,
                      onTaskSelected: () -> Unit,
                      taskListItemContentUpdates: TaskListItemContentUpdates){
-    Column {
+    println("DismissableTasks >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    Column(modifier = tasklistModifier) {
         tasks?.let {
             tasks!!.mapIndexed { index, item ->
                 key(item.id){
@@ -1242,8 +1245,8 @@ fun
 
     val contentAlpha = transition.animateColor { state ->
         when (state) {
-            SelectionState.Unselected -> colorResource(id = R.color.sample).copy(alpha = 0.0f)
-            SelectionState.Selected -> colorResource(id = R.color.sample)
+            SelectionState.Unselected -> MaterialTheme.colors.primary.copy(alpha = 0.0f)
+            SelectionState.Selected -> MaterialTheme.colors.primary
         }
     }
 

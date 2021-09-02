@@ -63,7 +63,8 @@ fun HomeScreen(scaffoldState: ScaffoldState = rememberScaffoldState(),
 
     val todayRemindersState = homeViewModel.getReminders(ReminderUtil.TODAY).collectAsState(initial = ArrayList())
 
-    val calendarDateTasksState = homeViewModel.getTasksForCalendarDate(8,homeViewModel.selectedCalendarDate).collectAsState(
+    val calendarDateTasksState = homeViewModel.getTasksForCalendarDate(9
+        ,homeViewModel.selectedCalendarDate).collectAsState(
         initial = ArrayList()
     )
 
@@ -205,6 +206,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
     var homescrollState = rememberScrollState()
 
     val tabsOffset = with(LocalDensity.current) { HOME_TABS_OFFSET.toPx() }
+    val calyearoffset = with(LocalDensity.current) { (CAL_CALENDAR_OFFSET ).toPx() }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -216,12 +218,8 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
         )
         .background(color = MaterialTheme.colors.background)) {
 
-        Box(){
-            Spacer(modifier = Modifier.heightIn(50.dp))
-        }
         Box(modifier = Modifier.fillMaxSize()){
             Spacer(modifier = Modifier.height(58.dp))
-
 
             when(currentTab){
                 HataHomeScreens.Today -> {
@@ -254,15 +252,20 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                 }
             }
         }
-        Column() {
+        Column(
+        ) {
             Box(){
-                Column(Modifier.fillMaxWidth()
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
                     Row(
                         modifier = Modifier
                             .background(color = MaterialTheme.colors.surface)
-                            .fillMaxWidth(), horizontalArrangement = Arrangement.Center
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Image(
                             modifier = Modifier
@@ -291,7 +294,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                                 ChoiceChipContent(
                                     text = tab,
                                     selected = index == selectedTabIndex,
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+                                    modifier = Modifier.padding( vertical = 8.dp)
                                 )
                             }
                         }
@@ -386,15 +389,18 @@ private fun TodayScreen(onTaskSelected: () -> Unit,
     Column() {
         Spacer(modifier = Modifier.height(TODAY_SCREEN_OFFSET))
         Text(
+            modifier = Modifier.padding(start = 12.dp,top = 16.dp),
             text = "Tasks",
-            style = MaterialTheme.typography.subtitle1,
-            color = colorResource(id = R.color.taskdivider)
+            style = MaterialTheme.typography.h5,
+            color = Color.White
         )
 
         var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha=0.98f))
+        var tasklistModifier = Modifier.padding(start = 8.dp,end = 8.dp)
 
         DismissableTasks(
             modifier = modifier,
+            tasklistModifier = tasklistModifier,
             tasks = todayreminders,
             onTaskSelected = onTaskSelected,
             taskselected = taskselected,
@@ -418,7 +424,8 @@ fun HataCalendar(
 ){
 
 
-            Box {
+            Box(modifier = Modifier.fillMaxSize()) {
+
                 HataCalendarSection(
                     tasksScrollState = tasksScrollState,
                     calendarContentUpdates = calendarContentUpdates,
@@ -435,7 +442,6 @@ fun HataCalendar(
                 )
 
             }
-
 
 }
 
@@ -492,6 +498,8 @@ private  fun CalendarTasksSection(
 
 
             var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
+            println("calendarDateTasks" + calendarDateTasks!!.size)
+
             DismissableTasks(
                 modifier = modifier,
                 tasks = calendarDateTasks,
@@ -550,30 +558,46 @@ private fun HataCalendarSectionContent(
     Column(
         Modifier
             .graphicsLayer { translationY = offset }
-            .fillMaxWidth()
+            .fillMaxSize()
             .horizontalScroll(calhorscrollState),
+
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(24.dp))
+        Box(modifier = Modifier.fillMaxWidth()){
+            Column(
+                modifier = Modifier.background(
+                    shape = RoundedCornerShape(4.dp),
+                    color = colorResource(id = R.color.cal_mon_year_sec)),
+                horizontalAlignment  = Alignment.CenterHorizontally
+            ) {
 
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)) {
-                CalendarMonthYearSection(
-                    calendarContentUpdates = calendarContentUpdates,
-                    onMonthChoose = { monthChoose = !monthChoose }
-                )
-            }
-            AnimatedVisibility(visible = monthChoose) {
-                MonthsSurface(monthChoose = monthChoose,onMonthChoose = { monthChoose = !monthChoose },calendarContentUpdates)
-            }
-            Row( Modifier.fillMaxWidth()) {
-                ReminderUtil.WEEKNAMES.values().forEach {
-                    CalendarWeekName(week = it.name)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)) {
+                    CalendarMonthYearSection(
+                        calendarContentUpdates = calendarContentUpdates,
+                        onMonthChoose = { monthChoose = !monthChoose }
+                    )
+                }
+
+
+                Spacer(modifier = Modifier.width(CAL_DATE_COL_SIZE * 7))
+
+                AnimatedVisibility(visible = monthChoose) {
+                    MonthsSurface(monthChoose = monthChoose,onMonthChoose = { monthChoose = !monthChoose },calendarContentUpdates)
                 }
 
             }
+        }
 
+        Row( Modifier.fillMaxWidth()) {
+            ReminderUtil.WEEKNAMES.values().forEach {
+                CalendarWeekName(week = it.name)
+            }
+
+        }
             Column() {
                 for (i in 0..5){
                     Row(Modifier.fillMaxWidth(),){
@@ -590,7 +614,7 @@ private fun HataCalendarSectionContent(
                                     date = calendarContentUpdates.monthCalendar[j][i] ,
                                     setCalendarView = calendarContentUpdates.setCalendarView,
                                     onSelectCalendarDate = calendarContentUpdates.onSelectCalendarDate,
-                                    calendarColumn = calendarContentUpdates.tasksForMonth.get(calendarContentUpdates.monthCalendar[j][i])
+                                    calendarColumn = calendarContentUpdates.tasksForMonth[calendarContentUpdates.monthCalendar[j][i]]
                                 )
                             }
                         }
@@ -607,42 +631,45 @@ fun CalendarMonthYearSection(
                             onMonthChoose: ()->Unit,
                             calendarContentUpdates: CalendarContentUpdates,
                            ){
-
-
-
     Column(Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(modifier = Modifier.height(24.dp))
         Row() {
             Column(
                 modifier = Modifier.clickable(enabled = true,onClick = {
-                    println("CLICKWED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                     onMonthChoose()
                 })
             ) {
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = colorResource(id = R.color.cal_month_sel),
+                    color = colorResource(id = R.color.cal_mon_year),
                     elevation = 2.dp,
-                    border = BorderStroke(1.dp,colorResource(id = R.color.jan))) {
+                    //border = BorderStroke(1.dp, MaterialTheme.colors.primary)
+                ) {
                     Text(
                         modifier = Modifier.padding(start = 16.dp,top=8.dp,end=16.dp,bottom = 8.dp),
                         text = ReminderUtil.monthsAbr[calendarContentUpdates.selectedCalendarMonth].toString(),
-                        color = Color.White,
+                        color = Color.Black,
                         style = MaterialTheme.typography.caption
                     )
+
+
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Column() {
+            Column(
+                modifier = Modifier.clickable(enabled = true,onClick = {
+                    onMonthChoose()
+                })
+            ) {
                 Surface(
                     shape = RoundedCornerShape(50),
-                    color = colorResource(id = R.color.cal_month_sel),
-                    border = BorderStroke(1.dp,colorResource(id = R.color.jan))) {
+                    color = colorResource(id = R.color.cal_mon_year),
+                    //border = BorderStroke(1.dp,MaterialTheme.colors.primary)
+                ) {
                     Text(
-                        modifier = Modifier.padding(start = 16.dp,top=8.dp,end=16.dp,bottom = 8.dp),
+                        modifier = Modifier.padding(start = 16.dp,top=8.dp,end=16.dp,bottom = 6.dp),
                         text = calendarContentUpdates.selectedCalendarYear.toString(),
-                        color = Color.White,
+                        color = Color.Black,
                         style = MaterialTheme.typography.caption
                     )
                 }
@@ -691,7 +718,10 @@ fun Month(
     calendarContentUpdates: CalendarContentUpdates
 ){
     Box(modifier = Modifier.padding(start=4.dp,end=2.dp,top=2.dp,bottom = 4.dp)){
-        Surface(shape = RoundedCornerShape(70),border = BorderStroke(1.dp, colorResource(id = R.color.jul))) {
+        Surface(
+            shape = RoundedCornerShape(70),
+            color = colorResource(id = R.color.cal_mon_year_sec),
+            border = BorderStroke(1.dp, MaterialTheme.colors.primary)) {
             Column(Modifier.clickable {
                 onMonthChoose()
                 calendarContentUpdates.onSelectCalendarMonth(month)
@@ -700,6 +730,7 @@ fun Month(
                     modifier = Modifier.padding(start=12.dp,end=12.dp,top=4.dp,bottom = 4.dp),
                     text = month,
                     style = MaterialTheme.typography.caption,
+                    color = Color.White,
                     fontSize = 10.sp
                 )
             }
@@ -719,7 +750,7 @@ fun CalendarWeekName(week: String){
         Column(modifier = wkNameSurfaceModifier,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = week, color = colorResource(id = R.color.cal_col), style = MaterialTheme.typography.h5, fontSize = 12.sp)
+            Text(text = week, color = Color.White, style = MaterialTheme.typography.h5, fontSize = 12.sp)
         }
 }
 
@@ -771,9 +802,9 @@ fun CalendarColumnSurface(
 
         }
         Surface(modifier = modifier
-            .background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.80f))
+            .background(color = MaterialTheme.colors.background.copy(alpha = 0.50f))
             .padding(4.dp)
-            ,color = colorResource(id = R.color.bottombar),
+            ,color = colorResource(id = R.color.cal_mon_year_sec),
             onClick = {
                         setCalendarView()
                         onSelectCalendarDate(date)
@@ -839,7 +870,7 @@ private fun ChoiceChipContent(
 ) {
     Surface(
         color = when {
-            selected -> MaterialTheme.colors.primary.copy(alpha = 0.08f)
+            selected -> MaterialTheme.colors.primary
             else -> MaterialTheme.colors.surface.copy(alpha = 0.30f)
         },
         shape = MaterialTheme.shapes.small,

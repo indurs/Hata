@@ -38,7 +38,11 @@
     <color name = "task_section1">#ff49474a</color>
     <color name = "calendar_bg">#f1f2f5</color>
     <color name = "calendar_col">#363639</color>
-    <color name = "cal_month_sel">#FF30409b</color>
+    <color name = "cal_month_sel">#d3d7e1</color>
+    <color name="important">#3466c2</color>
+
+    <color name="cal_mon_year_sec">#3d4550</color>
+    <color name="cal_mon_year">#b9ddff</color>
 
     <color name="weekname">#076ff9</color>
     <color name="due">#f28769</color>

@@ -82,7 +82,7 @@ val colors = darkColors(
 
 @Composable
 fun HataTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = hatascreencolors, typography = hataTypography, shapes = HataShapes) {
+    MaterialTheme(colors = hatadarkcolors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }

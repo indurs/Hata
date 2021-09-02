@@ -44,6 +44,19 @@ val DarkBlue900 = Color(0xFF26282F) // TODO: Confirm literal name
 
 val DarkSurface = Color(0xff242316)
 
+//val DarkBlue600 = Color(0xFF234583) //0xFF3f4d5e
+val DarkBlue600 = Color(0xff49b6ff)
+//val DarkBlue800 = Color(0xFF1b2023)
+//val DarkBlue800 = Color(0xFF2d2d30)
+//val DarkBlue800 = Color(0xFF1c1c1d)
+val DarkBlue800 = Color(0xFF191c20)
+
+val hatadarkcolors = darkColors(
+    primary = DarkBlue600,
+    surface = DarkBlue800,
+    background = DarkBlue800
+)
+
 val hatascreencolors = darkColors(
     primary = Green500,
     primaryVariant = Yellow800,
