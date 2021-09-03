@@ -1,5 +1,6 @@
 package com.oi.hata.common.util
 
+import com.oi.hata.common.reminder.ui.ReminderViewModel
 import kotlinx.coroutines.*
 import java.util.*
 import java.util.HashMap
@@ -106,6 +107,30 @@ object ReminderUtil {
     var days = intArrayOf(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     enum class WhenSelectType {  MONTH, DATE, WEEK, WEEKNUM, MONTHDATE, MONTHWEEK, MONTHWEEKNUM,NONE }
+
+    fun buildNumSuffix(num: Int): String{
+
+        if((num == 1) || (num == 21) || num == 31)
+            return num.toString() + ReminderViewModel.ReminderPreSuffix.ST.title
+        else if(num==2 || num == 22)
+            return num.toString() +  ReminderViewModel.ReminderPreSuffix.ND.title
+        else if(num==3 || num == 23)
+            return num.toString() + ReminderViewModel.ReminderPreSuffix.RD.title
+        else
+            return num.toString() + ReminderViewModel.ReminderPreSuffix.TH.title
+    }
+
+    fun getNumSuffix(num: Int): String{
+
+        if((num == 1) || (num == 21) || num == 31)
+            return ReminderViewModel.ReminderPreSuffix.ST.title
+        else if(num==2 || num == 22)
+            return ReminderViewModel.ReminderPreSuffix.ND.title
+        else if(num==3 || num == 23)
+            return ReminderViewModel.ReminderPreSuffix.RD.title
+        else
+            return ReminderViewModel.ReminderPreSuffix.TH.title
+    }
 
 
     val PICKADATE = "Pick a Date"

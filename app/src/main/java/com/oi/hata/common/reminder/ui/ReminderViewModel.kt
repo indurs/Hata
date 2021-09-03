@@ -14,6 +14,7 @@ import com.oi.hata.common.util.ReminderUtil.PICKADATE
 import com.oi.hata.common.util.ReminderUtil.TIME
 import com.oi.hata.common.util.ReminderUtil.TODAY
 import com.oi.hata.common.util.ReminderUtil.TOMORROW
+import com.oi.hata.common.util.ReminderUtil.buildNumSuffix
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -368,17 +369,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
         return reminder
     }
 
-    fun buildNumSuffix(num: Int): String{
-
-        if((num == 1) || (num == 21) || num == 31)
-            return num.toString() + ReminderPreSuffix.ST.title
-        else if(num==2 || num == 22)
-            return num.toString() +  ReminderPreSuffix.ND.title
-        else if(num==3 || num == 23)
-            return num.toString() + ReminderPreSuffix.RD.title
-        else
-            return num.toString() + ReminderPreSuffix.TH.title
-    }
 
     fun getReminderValues(): HataReminder{
 

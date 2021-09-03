@@ -423,25 +423,32 @@ fun HataCalendar(
     tasksScrollState: ScrollState
 ){
 
+    var monthChoose by rememberSaveable { (mutableStateOf(false)) }
 
-            Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
 
-                HataCalendarSection(
-                    tasksScrollState = tasksScrollState,
-                    calendarContentUpdates = calendarContentUpdates,
-                    calhorscrollState = calhorscrollState,
-                )
+        HataCalendarSection(
+            tasksScrollState = tasksScrollState,
+            calendarContentUpdates = calendarContentUpdates,
+            calhorscrollState = calhorscrollState,
+            monthChoose = monthChoose,
+            onMonthChoose = { monthChoose = !monthChoose }
+        )
 
-                CalendarTasksSection(
-                    tasksScrollState = tasksScrollState,
-                    onTaskSelected = onTaskSelected,
-                    taskListItemContentUpdates = taskListItemContentUpdates,
-                    taskselected = taskselected,
-                    calendarDateTasks = calendarDateTasksState,
-                    date = calendarContentUpdates.selectedCalendarDate
-                )
 
-            }
+        CalendarTasksSection(
+            tasksScrollState = tasksScrollState,
+            onTaskSelected = onTaskSelected,
+            taskListItemContentUpdates = taskListItemContentUpdates,
+            taskselected = taskselected,
+            calendarDateTasks = calendarDateTasksState,
+            date = calendarContentUpdates.selectedCalendarDate,
+            month = calendarContentUpdates.selectedCalendarMonth,
+            year = calendarContentUpdates.selectedCalendarYear,
+            monthChoose = monthChoose
+        )
+
+    }
 
 }
 
@@ -450,7 +457,10 @@ fun HataCalendar(
 @ExperimentalMaterialApi
 @Composable
 private  fun CalendarTasksSection(
+                                monthChoose: Boolean,
                                 date:Int,
+                                month: String,
+                                year: Int,
                                 tasksScrollState: ScrollState,
                                 onTaskSelected: () -> Unit,
                                 taskListItemContentUpdates: TaskListItemContentUpdates,
@@ -464,9 +474,6 @@ private  fun CalendarTasksSection(
         var offset = (taskOffset-tasksScrollState.value)
         var titileSize = (MIN_TITLE_SIZE + tasksScrollState.value).coerceAtMost(MAX_TITLE_SIZE)
 
-        var today = GregorianCalendar().get(Calendar.DAY_OF_MONTH)
-
-
         SideEffect {
 
             if(offset < 100 ){
@@ -477,6 +484,8 @@ private  fun CalendarTasksSection(
 
             }
         }
+        if(monthChoose)
+            offset += 200
 
         Column(modifier = Modifier
             .graphicsLayer { translationY = offset }
@@ -488,14 +497,8 @@ private  fun CalendarTasksSection(
 
             ) {
 
-            Text(
-                modifier = Modifier.padding(start = 8.dp,bottom = 8.dp),
-                text = if(date != 0) date.toString() else "",
-                fontSize = titileSize.sp,
-                style = MaterialTheme.typography.overline,
-                color = if(date == today) colorResource(id = R.color.weekname ) else Color.White
-            )
 
+            TasksHeader(date = date, month = month, year = year, titileSize = titileSize)
 
             var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
             println("calendarDateTasks" + calendarDateTasks!!.size)
@@ -512,13 +515,53 @@ private  fun CalendarTasksSection(
 
 }
 
+@Composable
+fun TasksHeader(date:Int,month: String,year: Int,titileSize: Int){
+    var today = GregorianCalendar().get(Calendar.DAY_OF_MONTH)
+    Spacer(modifier = Modifier.height(16.dp))
+    Row() {
+        Text(
+            modifier = Modifier.padding(start = 8.dp,bottom = 8.dp),
+            text = if(date != 0) date.toString() else "",
+            fontSize = titileSize.sp,
+            style = MaterialTheme.typography.overline,
+            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+        )
+        Text(
+            modifier = Modifier.padding(top = 6.dp),
+            text = if(date != 0) ReminderUtil.getNumSuffix(date) else "",
+            fontSize = titileSize.sp/2,
+            style = MaterialTheme.typography.overline,
+            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp,top=12.dp),
+            text = month,
+            fontSize = titileSize.sp/2,
+            style = MaterialTheme.typography.overline,
+            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+        )
+
+        Text(
+            modifier = Modifier.padding(start = 6.dp,top = 12.dp),
+            text = year.toString(),
+            fontSize = titileSize.sp/2,
+            style = MaterialTheme.typography.overline,
+            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+        )
+    }
+
+}
+
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
 fun HataCalendarSection(
     tasksScrollState: ScrollState,
     calendarContentUpdates: CalendarContentUpdates,
-    calhorscrollState:ScrollState
+    calhorscrollState:ScrollState,
+    monthChoose: Boolean,
+    onMonthChoose: () -> Unit
 ){
     val calendarOffset = with(LocalDensity.current) { CAL_CALENDAR_OFFSET.toPx() }
 
@@ -537,7 +580,9 @@ fun HataCalendarSection(
             tasksScrollState = tasksScrollState,
             calendarContentUpdates = calendarContentUpdates,
             calhorscrollState = calhorscrollState,
-            offset = offset
+            offset = offset,
+            monthChoose = monthChoose,
+            onMonthChoose = onMonthChoose
         )
     }
 
@@ -547,13 +592,14 @@ fun HataCalendarSection(
 @ExperimentalMaterialApi
 @Composable
 private fun HataCalendarSectionContent(
-
+    monthChoose: Boolean,
     tasksScrollState: ScrollState,
     calendarContentUpdates: CalendarContentUpdates,
     calhorscrollState:ScrollState,
+    onMonthChoose: () -> Unit,
     offset: Float
 ){
-    var monthChoose by rememberSaveable { (mutableStateOf(false)) }
+
 
     Column(
         Modifier
@@ -578,7 +624,7 @@ private fun HataCalendarSectionContent(
                         .padding(16.dp)) {
                     CalendarMonthYearSection(
                         calendarContentUpdates = calendarContentUpdates,
-                        onMonthChoose = { monthChoose = !monthChoose }
+                        onMonthChoose = onMonthChoose
                     )
                 }
 
@@ -586,7 +632,7 @@ private fun HataCalendarSectionContent(
                 Spacer(modifier = Modifier.width(CAL_DATE_COL_SIZE * 7))
 
                 AnimatedVisibility(visible = monthChoose) {
-                    MonthsSurface(monthChoose = monthChoose,onMonthChoose = { monthChoose = !monthChoose },calendarContentUpdates)
+                    MonthsSurface(monthChoose = monthChoose,onMonthChoose = onMonthChoose,calendarContentUpdates)
                 }
 
             }
@@ -691,7 +737,8 @@ fun MonthsSurface(
         horizontalAlignment = Alignment.CenterHorizontally) {
 
 
-        Column() {
+        Column(modifier = Modifier.padding(bottom = 8.dp)
+        ) {
             Spacer(modifier = Modifier.height(8.dp))
             Row(){
                 for(i in 1..6){
@@ -1002,7 +1049,7 @@ private val CAL_TASKS_TITLE_OFFSET = CALENDAR_SIZE + CAL_TASK_TITLE_SPACE + MON_
 
 private val TASKS_OFFSET = 148.dp
 
-private val MIN_TITLE_SIZE = 16
+private val MIN_TITLE_SIZE = 24
 private val MAX_TITLE_SIZE = 48
 
 class TabContent(val homescreen: HataHomeScreens, val content: @Composable () -> Unit)

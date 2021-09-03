@@ -39,7 +39,8 @@ import kotlinx.coroutines.delay
 fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
                taskViewModel: TaskViewModel,
                reminderViewModel: ReminderViewModel,
-               onCustomReminderSelect: () -> Unit
+               onCustomReminderSelect: () -> Unit,
+               onBackTaskScreen: () -> Unit
 ){
     val grouptasksState = taskViewModel.getGroupTasks().collectAsState(initial = emptyList())
 
@@ -49,137 +50,66 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 
     val importantTasksCountState = taskViewModel.getImportantTaskCount().collectAsState(initial = 0)
 
-    /*val taskContentUpdates = TaskContentUpdates(
-        onTaskTxtChange = { taskViewModel.onTaskTxtChange(it) },
-        onSaveTask = { taskViewModel.saveTask(it) },
-        onDueDateSelect = { year, month, day -> taskViewModel.onDueDateSelect(year = year,month = month,day = day) },
-        onCloseTask = taskViewModel::resetValues,
-        taskTxt = taskViewModel.taskTxt,
-        dueDateSelected = taskViewModel.dueDateSelected,
-        dueDate = taskViewModel.reminderDueDate,
-        groupId = groupTaskState.value!!.Group!!.id,
-    )*/
-
     val taskContentUpdates = TaskContentUpdates(taskViewModel = taskViewModel,groupId = groupTaskState.value!!.Group!!.id)
-
-    /*val taskListItemContentUpdates = TaskListItemContentUpdates(
-        onTaskItemClick = { taskViewModel.onTaskItemClick(it) },
-        onTaskCompleted = { taskViewModel.onTaskCompleted(it) },
-        taskcompleted = taskViewModel.taskCompleted,
-        taskImportant = taskViewModel.taskImportant,
-        onTaskImportant = { taskViewModel.onTaskImportant(it) },
-        onDeleteTask = { taskViewModel.onDeleteTask(it)}
-    )*/
 
     val taskListItemContentUpdates = TaskListItemContentUpdates(taskViewModel = taskViewModel,displayToday = true)
 
-
-
-
-    /*val reminderContentUpdates = ReminderContentUpdates(
-        onTimeSelect = { hour, minute, am -> reminderViewModel.onTimeSelect(hour,minute,am)},
-        onTimeSelected = reminderViewModel::onReminderTimeSelected,
-        onReminderSelected = reminderViewModel::onReminderSelected,
-        onReminderOptSelected = reminderViewModel::onReminderOptionSelected ,
-        onPickaDate = { year, month, day -> reminderViewModel.onPickaDateSelect(year = year,month = month, day = day) },
-        onPickaDateSelected = reminderViewModel::onPickaDateSelected,
-        resetReminder = taskViewModel::resetReminder,
-        initReminderValues = { taskViewModel.setReminderFromTaskUIState()
-            reminderViewModel.initReminderValues(taskViewModel.getTaskReminder())
-        },
-        onClearReminderValues =  {
-            taskViewModel.resetTaskReminder()
-            reminderViewModel.initReminderValues(taskViewModel.getTaskReminder())
-        },
-        reminderSelected = reminderViewModel.reminderSelected,
-        reminderOptSelected = reminderViewModel.reminderOptSelected,
-        pickaDateSelected = reminderViewModel.pickDateSelected,
-        pickRemDate = reminderViewModel.pickAdate,
-        timeSelected = reminderViewModel.reminderTimeSelected,
-        reminder = taskViewModel.getReminderTxt(),
-        reminderTime = reminderViewModel.reminderTime,
-    )*/
-
     val reminderContentUpdates = ReminderContentUpdates(reminderViewModel = reminderViewModel,taskViewModel = taskViewModel)
-
-    /*val customReminderContentUpdates = CustomReminderContentUpdates(
-        onCustomReminderSelect = onCustomReminderSelect,
-        onCustomReminderInitialize = {
-            if(reminderViewModel.reminderOptSelected != ReminderUtil.CUSTOM){
-                taskViewModel.resetReminder()
-            }
-            reminderViewModel.onReminderCustomClick(taskViewModel.getReminder())
-        },
-        onCompleteReminder = { taskViewModel.saveTaskReminder(reminderViewModel.getReminderValues()) },
-        onCloseReminder = taskViewModel::resetReminder,
-        customreminder = taskViewModel.getCustomReminderTxt(reminderViewModel.reminderOptSelected),
-    )*/
 
     val customReminderContentUpdates = CustomReminderContentUpdates(reminderViewModel = reminderViewModel,
                                                                     taskViewModel = taskViewModel,
                                                                     onCustomReminderSelect = onCustomReminderSelect
                                                                     )
 
-    /*val groupContentUpdates = GroupContentUpdates(
-        selectedTaskGroup = taskViewModel.selectedTaskGroup,
-        onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
-        importantTasksCount = importantTasksCountState.value,
-        addGroupSelected = taskViewModel.addgroupSelected,
-        onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
-        newGroup = taskViewModel.newGroup,
-        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
-        saveNewGroup = { taskViewModel.saveNewGroup(it) },
-    )*/
+    val groupContentUpdates = GroupContentUpdates(
+                                                    taskViewModel = taskViewModel,
+                                                    importantTasksCount = importantTasksCountState.value,
+                                                    onBackTaskScreen = onBackTaskScreen
+                                                )
 
-    val groupContentUpdates = GroupContentUpdates(taskViewModel = taskViewModel,
-                                                    importantTasksCount = importantTasksCountState.value)
+    Box(modifier = Modifier.fillMaxSize()) {
 
+        val groupscroll = rememberScrollState(0)
+        val taskscroll = rememberScrollState(0)
 
+        Groups(
+            modifier = Modifier,
+            selectedGroup = groupTaskState.value,
+            groupTasks = grouptasksState.value,
+            groupscroll = groupscroll,
+            taskselected = taskViewModel.taskselected,
+            groupContentUpdates = groupContentUpdates
+        )
 
-
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            val groupscroll = rememberScrollState(0)
-            val taskscroll = rememberScrollState(0)
-
-            Groups(
-                modifier = Modifier,
-                selectedGroup = groupTaskState.value,
-                groupTasks = grouptasksState.value,
-                groupscroll = groupscroll,
-                taskselected = taskViewModel.taskselected,
-                groupContentUpdates = groupContentUpdates
+        AnimatedVisibility(
+            visible = !taskViewModel.taskselected,
+            Modifier.align(Alignment.BottomCenter)
+        ) {
+            Tasks(
+                groupTask = groupTaskState.value,
+                groupscroll = groupscroll.value,
+                taskContentUpdates = taskContentUpdates,
+                taskListItemContentUpdates = taskListItemContentUpdates,
+                taskscroll = taskscroll,
+                onTaskSelected = { taskViewModel.onTaskSelected() }
             )
-
-            AnimatedVisibility(
-                visible = !taskViewModel.taskselected,
-                Modifier.align(Alignment.BottomCenter)
-            ) {
-                Tasks(
-                    groupTask = groupTaskState.value,
-                    groupscroll = groupscroll.value,
-                    taskContentUpdates = taskContentUpdates,
-                    taskListItemContentUpdates = taskListItemContentUpdates,
-                    taskscroll = taskscroll,
-                    onTaskSelected = { taskViewModel.onTaskSelected() }
-                )
-            }
-            AnimatedVisibility(
-                visible = taskViewModel.taskselected,
-                Modifier.align(Alignment.BottomCenter)
-                )
-            {
-                ReminderBar(
-                    reminderContentUpdates = reminderContentUpdates,
-                    customReminderContentUpdates = customReminderContentUpdates,
-                    taskContentUpdates = taskContentUpdates,
-                    onTaskSelected = { taskViewModel.onTaskSelected() },
-                    taskselected = taskViewModel.taskselected
-                )
-            }
-            TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,groupContentUpdates = groupContentUpdates)
-
         }
+        AnimatedVisibility(
+            visible = taskViewModel.taskselected,
+            Modifier.align(Alignment.BottomCenter)
+            )
+        {
+            ReminderBar(
+                reminderContentUpdates = reminderContentUpdates,
+                customReminderContentUpdates = customReminderContentUpdates,
+                taskContentUpdates = taskContentUpdates,
+                onTaskSelected = { taskViewModel.onTaskSelected() },
+                taskselected = taskViewModel.taskselected
+            )
+        }
+        TaskTopBar(modifier = Modifier.statusBarsPadding(),groupScrollState = groupscroll,groupContentUpdates = groupContentUpdates)
+
+    }
 
 }
 
@@ -282,7 +212,7 @@ fun Groups(
     }
 }
 
-private val MinTopOffset = 48.dp
+private val MinTopOffset = 56.dp
 private val MaxGroupHeight = 400.dp
 private val MaxTaskListHeight = 300.dp
 

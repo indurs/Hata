@@ -85,7 +85,11 @@ fun CustomReminderContentUpdates(reminderViewModel: ReminderViewModel,
     return customReminderContentUpdates
 }
 
-fun GroupContentUpdates(taskViewModel: TaskViewModel, importantTasksCount: Int): GroupContentUpdates{
+fun GroupContentUpdates(
+    taskViewModel: TaskViewModel,
+    importantTasksCount: Int,
+    onBackTaskScreen: () -> Unit
+): GroupContentUpdates{
     val groupContentUpdates = GroupContentUpdates(
         selectedTaskGroup = taskViewModel.selectedTaskGroup,
         onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
@@ -95,6 +99,7 @@ fun GroupContentUpdates(taskViewModel: TaskViewModel, importantTasksCount: Int):
         newGroup = taskViewModel.newGroup,
         onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
         saveNewGroup = { taskViewModel.saveNewGroup(it) },
+        onBackTaskScreen = onBackTaskScreen
     )
 
     return groupContentUpdates

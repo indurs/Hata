@@ -94,6 +94,7 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
                 taskViewModel = taskViewModel,
                 reminderViewModel = reminderViewModel,
                 onCustomReminderSelect = actions.onClickReminder,
+                onBackTaskScreen = actions.onBackTaskScreen
             )
         }
     }
@@ -111,6 +112,10 @@ class HataNavActions(navController: NavHostController) {
     }
 
     val onCompleteCustomReminder: () -> Unit = {
+        navController.popBackStack()
+    }
+
+    val onBackTaskScreen: () -> Unit = {
         navController.popBackStack()
     }
 

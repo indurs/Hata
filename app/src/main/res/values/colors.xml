@@ -46,7 +46,7 @@
 
     <color name="weekname">#076ff9</color>
     <color name="due">#f28769</color>
-    <color name="cal_col">#f9a10a</color>
+    <color name="cal_col">#ff9e22</color>
     <!-- Months -->
     <color name="jan">#FF0841ec</color>
     <color name="feb">#FFfe8cef</color>

@@ -116,7 +116,7 @@ fun TaskGroup(  taskSize: Int = 0,
                     modifier = Modifier
                         .padding(start = 16.dp, end = 8.dp, top = 4.dp)
                         .size(12.dp),
-                    tint = MaterialTheme.colors.onSurface
+                    tint = colorResource(id = R.color.cal_col).compositeOver(Color.Black)
                 )
                 }
 
@@ -325,7 +325,6 @@ fun TaskItem(
                                                             onTaskSelected()
                                                             taskListItemContentUpdates.onTaskItemClick(task.id)
                                                           })
-    println("TaskItem >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -340,20 +339,21 @@ fun TaskItem(
 
         Row( modifier = Modifier
             .fillMaxWidth()
-
+            .padding(6.dp)
         ){
             Column(modifier = Modifier
                 .align(
                     Alignment
                         .CenterVertically
                 )
+                .clip(CircleShape)
+                .clipToBounds()
                 .clickable { taskListItemContentUpdates.onTaskCompleted(task) }
-                .padding(8.dp)
+
 
 
             ) {
                 Box(
-                    modifier = Modifier.clip(CircleShape)
                 ){
                     Icon(
                         modifier = Modifier.size(28.dp),
@@ -408,35 +408,38 @@ fun TaskItem(
                ) {
                 Row(modifier = Modifier
                     .align(Alignment.End)
-                    .padding(end = 8.dp)) {
+                    ) {
                     AnimatedVisibility(visible = taskListItemContentUpdates.displayToday || task.todaytask) {
                         Box(modifier = Modifier
+                            .clip(CircleShape)
+                            .clipToBounds()
                             .clickable { taskListItemContentUpdates.onTaskSetForToday(task) }
-                            .padding(top = 2.dp, end = 8.dp)
+                            .padding(top = 2.dp,)
                         ){
-                        Icon(
-                            painter = painterResource(R.drawable.ic_action_today),
-                            modifier = Modifier
-                                .padding(end = 16.dp)
-                                .size(20.dp),
-                            contentDescription = null,
-                            tint = taskItemTodayTransitionState.colorAlpha
-                        )
-                    }
-                    }
+                            Icon(
+                                painter = painterResource(R.drawable.ic_action_today),
+                                modifier = Modifier
+                                    .size(20.dp),
+                                contentDescription = null,
+                                tint = taskItemTodayTransitionState.colorAlpha
+                            )
 
-                    Box(modifier = Modifier.clip(CircleShape).clickable { taskListItemContentUpdates.onTaskImportant(task) }){
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Box(modifier = Modifier
+                        .clip(CircleShape)
+                        .clipToBounds()
+                        .clickable { taskListItemContentUpdates.onTaskImportant(task) }){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_star),
                             modifier = Modifier
-                                .padding(end = 16.dp)
                                 .size(24.dp),
                             contentDescription = null,
                             tint = MaterialTheme.colors.primary
                         )
                         Icon(
                             modifier = Modifier
-                                .padding(end = 16.dp)
                                 .size(24.dp),
                             painter = painterResource(R.drawable.ic_action_star_full),
                             contentDescription = null,
@@ -694,7 +697,6 @@ fun DismissableTasks(
                      taskselected: Boolean = false,
                      onTaskSelected: () -> Unit,
                      taskListItemContentUpdates: TaskListItemContentUpdates){
-    println("DismissableTasks >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
     Column(modifier = tasklistModifier) {
         tasks?.let {
             tasks!!.mapIndexed { index, item ->
@@ -846,26 +848,32 @@ fun TaskTopBar(modifier: Modifier,
                groupScrollState: ScrollState){
     //val maxOffset = with(LocalDensity.current) { if(groupScrollState.value > 0 || tasksscroll.value > 0) (MinTopBarOffset - (groupScrollState.value + tasksscroll.value).toDp()) else MinTopBarOffset }
 
-    Surface(modifier = modifier
-        .fillMaxWidth()
+    Surface(modifier = modifier.fillMaxWidth(),
+            color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f)
+
         //.graphicsLayer { translationY = maxOffset.toPx() }
         ) {
         Header()
         Row() {
-            Column() {
-                IconButton(
-                    onClick = {  },
+            Column(modifier = Modifier.padding(12.dp)) {
+                Surface(
                     modifier = Modifier
-                        .statusBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
-                        .size(36.dp)
-                        .background(color = Color.White, shape = CircleShape)
+                        .clip(CircleShape)
+                        .clickable { groupContentUpdates.onBackTaskScreen() }
+                        .border(
+                            BorderStroke(1.dp, color = Color.White),
+                            shape = CircleShape
+                        ),
+                    color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
+                ){
 
-                ) {
                     Icon(
+                        modifier = Modifier.padding(6.dp),
                         imageVector = Icons.Outlined.ArrowBack,
+                        tint = MaterialTheme.colors.primary,
                         contentDescription = "Back"
                     )
+
                 }
             }
 
@@ -1362,6 +1370,7 @@ data class GroupContentUpdates(
     val addGroupSelected: Boolean,
     val onAddNewGroup: (String) -> Unit,
     val saveNewGroup: (String) -> Unit,
+    val onBackTaskScreen: () -> Unit,
     val newGroup: String,
     val importantTasksCount: Int
 )
