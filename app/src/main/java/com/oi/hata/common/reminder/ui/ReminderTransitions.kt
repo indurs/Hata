@@ -128,3 +128,27 @@ fun weekTransition(week:String, selectedWeeks: List<String>): WeekTransition {
     }
 }
 
+@Composable
+fun weekNumTransition(weekNum:Int, selectedWeekNums: List<Int>): WeekTransition {
+    val transition = updateTransition(
+        targetState = if (weekNum in selectedWeekNums) SelectionState.Selected else SelectionState.Unselected,
+        label = ""
+    )
+    val corerRadius = transition.animateDp { state ->
+        when (state) {
+            SelectionState.Unselected -> 4.dp
+            SelectionState.Selected -> 24.dp
+        }
+    }
+    val selectedAlpha = transition.animateFloat { state ->
+        when (state) {
+            SelectionState.Unselected -> 0f
+            SelectionState.Selected -> 0.8f
+        }
+    }
+
+    return remember(transition) {
+        WeekTransition(corerRadius, selectedAlpha)
+    }
+}
+

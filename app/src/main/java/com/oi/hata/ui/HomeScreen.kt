@@ -9,12 +9,16 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -285,6 +289,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                         ) {
                         tabs.forEachIndexed { index, tab ->
                             Tab(
+                                modifier = Modifier.padding(4.dp).clip(CircleShape).clipToBounds(),
                                 selected = selectedTabIndex == index,
                                 onClick = {
                                     onTabChange(HataHomeScreens.values()[index])
@@ -294,7 +299,7 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                                 ChoiceChipContent(
                                     text = tab,
                                     selected = index == selectedTabIndex,
-                                    modifier = Modifier.padding( vertical = 8.dp)
+                                    modifier = Modifier
                                 )
                             }
                         }
@@ -919,7 +924,7 @@ fun CalendarColumnSurface(
 private fun ChoiceChipContent(
     text: String,
     selected: Boolean,
-    modifier: Modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+    modifier: Modifier = Modifier
 ) {
     Surface(
         color = when {
@@ -927,7 +932,7 @@ private fun ChoiceChipContent(
             else -> MaterialTheme.colors.surface.copy(alpha = 0.30f)
         },
         shape = MaterialTheme.shapes.small,
-        modifier = modifier,
+        modifier = modifier.clip(MaterialTheme.shapes.small).clipToBounds(),
 
         ) {
         Text(

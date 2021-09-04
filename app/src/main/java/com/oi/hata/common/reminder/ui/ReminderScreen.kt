@@ -38,10 +38,7 @@ import com.google.accompanist.insets.statusBarsHeight
 import com.oi.hata.R
 import com.oi.hata.common.reminder.data.local.model.HataReminder
 import com.oi.hata.common.reminder.data.local.model.ReminderMaster
-import com.oi.hata.common.reminder.ui.ReminderViewModel
-import com.oi.hata.common.reminder.ui.dateTransition
-import com.oi.hata.common.reminder.ui.monthTransition
-import com.oi.hata.common.reminder.ui.weekTransition
+import com.oi.hata.common.reminder.ui.*
 import com.oi.hata.common.ui.*
 import com.oi.hata.common.ui.components.HataDatePicker
 import com.oi.hata.common.ui.components.HataTimePicker
@@ -217,6 +214,7 @@ private fun ReminderWhenOptions(reminderViewModel: ReminderViewModel,
 
             Card(
                 modifier = Modifier.padding(12.dp),
+                backgroundColor = MaterialTheme.colors.background.copy(alpha = 0.10f),
                 shape = shape
             ){
                 Column() {
@@ -316,7 +314,7 @@ private fun Months(selectedMonths: List<String>,
         Column() {
             Header(
                 name = stringResource(id = R.string.months),
-                color = colorResource(id = R.color.header1)
+                color = colorResource(id = R.color.jul)
             )
             Row(
                 modifier = modifier.fillMaxWidth(),
@@ -357,10 +355,10 @@ private fun Dates(selectedDates: List<Int>,
         shape = shape
     ) {
         Column() {
-            Header("Dates",color = colorResource(id = R.color.sep))
+            Header("Dates",color = colorResource(id = R.color.dates))
             Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 LayoutContainer(
-                    modifier = modifier
+                    modifier = modifier.padding(8.dp)
                 )
                 {
                     for (date in 1..31) {
@@ -399,6 +397,7 @@ private fun Weeks(selectedWeeks: List<String>,
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 private fun WeekNums(selectedWeekNums: List<Int>,
                      onWeekNumSelect: (Int) -> Unit,
@@ -410,7 +409,7 @@ private fun WeekNums(selectedWeekNums: List<Int>,
         LayoutContainer(modifier = modifier)
         {
             for (weeknum in 1..5) {
-                WeekNum(weeknum.toString(), color,onWeekNumSelect)
+                WeekNum(weeknum.toString(), color,onWeekNumSelect,selectedWeekNums = selectedWeekNums)
             }
         }
     }
@@ -425,7 +424,7 @@ private fun Month(name: String, color: Color, onMonthSelect: (String) -> Unit,se
         .size(width = CELL_SIZE, height = CELL_SIZE)
 
     MonthSurface(
-        color = colorResource(id = R.color.customremsurface),
+        color = colorResource(id = R.color.mths),
         modifier = mthSurfaceModifier,
         name = name,
         onMonthSelect = onMonthSelect,
@@ -436,7 +435,7 @@ private fun Month(name: String, color: Color, onMonthSelect: (String) -> Unit,se
                 textAlign = TextAlign.Center,
                 text = name,
                 color = Color.White,
-                style = MaterialTheme.typography.overline)
+                style = MaterialTheme.typography.caption)
     }
 
 }
@@ -452,7 +451,7 @@ private fun Date(name: Int, color: Color,
 
     DateSurface(
         date = name,
-        color = colorResource(id = R.color.customremsurface),
+        color = colorResource(id = R.color.mths),
         modifier = dteSurfaceModifier,
         onDateSelect = onDateSelect,
         selectedDates = selectedDates
@@ -460,7 +459,7 @@ private fun Date(name: Int, color: Color,
         Text(text = name.toString(), modifier = Modifier
             .padding(4.dp),
             color = Color.White,
-            style = MaterialTheme.typography.overline)
+            style = MaterialTheme.typography.caption)
     }
 
 }
@@ -472,7 +471,7 @@ private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit, sel
     var weekSurfaceModifier: Modifier = Modifier.size(width = WEEK_CELL_SIZE, height = WEEK_CELL_SIZE)
 
     WeekSurface(
-        color = colorResource(id = R.color.customremsurface),
+        color = colorResource(id = R.color.mths),
         modifier = weekSurfaceModifier,
         onWeekSelect = onWeekSelect,
         selectedWeeks = selectedWeeks,
@@ -486,19 +485,14 @@ private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit, sel
 
 }
 
-/*if (monthTransitionState.selectedAlpha > 0f) {
-
-            Dot(
-                color = color.copy(alpha = 0.20f).compositeOver(Color.White),
-                modifier = Modifier
-                    .padding(start = 20.dp, top = 32.dp)
-                    .size(8.dp)
-            )
-        }*/
-
-
+@ExperimentalMaterialApi
 @Composable
-private fun WeekNum(name: String, color: Color, onWeekNumSelect: (Int) -> Unit){
+private fun WeekNum(weekNum: String,
+                    color: Color,
+                    onWeekNumSelect: (Int) -> Unit,
+                    selectedWeekNums: List<Int>
+)
+{
 
     var weekSurfaceModifier: Modifier = Modifier.size(width = WEEK_NUM_CELL_SIZE, height = WEEK_NUM_CELL_SIZE)
 
@@ -507,11 +501,15 @@ private fun WeekNum(name: String, color: Color, onWeekNumSelect: (Int) -> Unit){
 
         )
 
-    WeekNumSurface( color = MaterialTheme.colors.surface,
-        brush,
-        modifier = weekSurfaceModifier) {
-        Text(text = name, modifier = Modifier
-            .clickable { onWeekNumSelect(name.toInt()) }
+    WeekNumSurface(
+        color = colorResource(id = R.color.mths),
+        modifier = weekSurfaceModifier,
+        weekNum = weekNum.toInt(),
+        onWeekNumSelect = onWeekNumSelect,
+        selectedWeekNums = selectedWeekNums
+    ) {
+        Text(text = weekNum, modifier = Modifier
+            .clickable { onWeekNumSelect(weekNum.toInt()) }
             .padding(4.dp),
             color = Color.White,
             style = MaterialTheme.typography.overline)
@@ -535,7 +533,7 @@ private fun ReminderSurface(color: Color,
                             content: @Composable () -> Unit){
     
     Card(
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = MaterialTheme.colors.background.copy(alpha = 0.10f),
         modifier=Modifier.padding(16.dp),
         shape = RoundedCornerShape(4.dp),
         ) {
@@ -590,7 +588,7 @@ private fun MonthSurface(color: Color,
 
     Box(contentAlignment = Alignment.Center){
         Surface( modifier = modifier.padding(4.dp),
-            color  = colorResource(id = R.color.header1),
+            color  = colorResource(id = R.color.jul),
             shape= RoundedCornerShape(8.dp),
             elevation = 1.dp) {
 
@@ -680,7 +678,7 @@ private fun DateSurface( color: Color,
 
     Box(contentAlignment = Alignment.Center){
         Surface( modifier = modifier.padding(4.dp),
-            color  = colorResource(id = R.color.sep),
+            color  = colorResource(id = R.color.dates),
             shape= RoundedCornerShape(8.dp),
             elevation = 1.dp) {
 
@@ -761,17 +759,39 @@ private fun WeekSurface(color: Color,
 
 }
 
+@ExperimentalMaterialApi
 @Composable
 private fun WeekNumSurface(color: Color,
-                        brush: Brush,
-                        modifier: Modifier,
-                        content: @Composable () -> Unit
+                           modifier: Modifier,
+                           weekNum: Int,
+                           onWeekNumSelect: (Int) -> Unit,
+                           selectedWeekNums: List<Int>,
+                           content: @Composable () -> Unit
 ){
 
-    Surface(modifier = modifier.padding(4.dp), color = color, shape= RoundedCornerShape(8.dp), elevation = 1.dp) {
-        Column(verticalArrangement = Arrangement.Center,horizontalAlignment = Alignment.CenterHorizontally) {
-            content()
+    val weekNumTransitionState = weekNumTransition(weekNum = weekNum,selectedWeekNums = selectedWeekNums)
+
+    Box(contentAlignment = Alignment.Center){
+        Surface( modifier = modifier.padding(4.dp),
+            color  = colorResource(id = R.color.header2),
+            shape= RoundedCornerShape(8.dp),
+            elevation = 1.dp) {
+
         }
+        Surface(modifier = modifier.padding(4.dp),
+            onClick = { onWeekNumSelect(weekNum) },
+            color = color,
+            shape = RoundedCornerShape(4.dp, weekNumTransitionState.cornerRadius,4.dp,4.dp),
+            elevation = 1.dp
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                content()
+            }
+        }
+
     }
 
 }
