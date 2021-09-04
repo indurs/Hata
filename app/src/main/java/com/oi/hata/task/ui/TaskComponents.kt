@@ -137,8 +137,8 @@ fun TaskGroup(  taskSize: Int = 0,
 @ExperimentalMaterialApi
 @Composable
 fun TaskList(
-            taskRowModifier: Modifier,
             modifier: Modifier,
+            color: Color,
             groupTask: GroupTask?,
             height: Dp,
             onTaskSelected: () -> Unit,
@@ -155,7 +155,7 @@ fun TaskList(
             color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
             shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             ) {
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AddTaskHeader(groupTask = groupTask!!, onTaskSelected = onTaskSelected)
                     
                     Column(modifier = Modifier
@@ -164,30 +164,12 @@ fun TaskList(
 
                     ) {
                         DismissableTasks(
-                            modifier = taskRowModifier,
+                            modifier = modifier,
+                            color = color,
                             tasks = groupTask.tasks,
                             onTaskSelected = onTaskSelected,
                             taskListItemContentUpdates = taskListItemContentUpdates
                         )
-                        /*groupTask?.let{
-                            it.tasks!!.mapIndexed { index, task ->
-                                if (index > 0) {
-                                    //Divider(thickness = 0.20.dp,color = Color.Yellow.copy(alpha = 0.50f))
-                                    Spacer(modifier = Modifier.height(8.dp).pointerInput(Unit){
-                                        coroutineScope {
-                                            launch {
-                                                detectDragGestures(
-                                                    onDrag = {change, dragAmount ->  }
-                                                )
-                                            }
-                                        }
-                                    }
-                                        
-                                    )
-                                }
-                                    TaskItem(task = task,taskContentUpdates = taskContentUpdates)
-                            }
-                        }*/
                     }
                 }
         }
@@ -198,6 +180,7 @@ fun TaskList(
 @Composable
 private fun TaskRow(
     modifier: Modifier = Modifier,
+    color: Color,
     task: Task,
     taskselected: Boolean,
     onTaskSelected: () -> Unit,
@@ -283,6 +266,7 @@ private fun TaskRow(
             },
             dismissContent = {
                 Card(
+                    backgroundColor = color,
                     shape = RectangleShape,
                     elevation = animateDpAsState(
                         if (dismissState.dismissDirection != null) 4.dp else 0.dp
@@ -326,7 +310,7 @@ fun TaskItem(
                                                             taskListItemContentUpdates.onTaskItemClick(task.id)
                                                           })
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(top = 4.dp, bottom = 4.dp)
 
@@ -461,14 +445,14 @@ private fun AddTaskHeader(
                             onTaskSelected: () -> Unit,
                             groupTask: GroupTask
                         ){
-    Row() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
 
-        Column {
+        Column(Modifier.padding(start=8.dp,bottom = 8.dp)) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Surface(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(top = 16.dp, end = 24.dp)
+                        .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp)
                         .clip(MaterialTheme.shapes.medium)
                         .border(
                             BorderStroke(1.dp, color = Color.White),
@@ -501,7 +485,7 @@ private fun AddTaskHeader(
 
                     Text(
                         modifier = Modifier
-                            .padding(top = 4.dp, bottom = 4.dp, start = 8.dp, end = 8.dp)
+                            .padding(top = 4.dp, bottom = 4.dp, end = 8.dp)
                             .align(Alignment.CenterStart),
                         text = groupTask.Group!!.name,
                         style = MaterialTheme.typography.subtitle1,
@@ -509,7 +493,7 @@ private fun AddTaskHeader(
                     )
             }
 
-            Spacer(modifier = Modifier.height(AddTaskHeader))
+            //Spacer(modifier = Modifier.height(AddTaskHeader))
 
             Divider(thickness = 1.dp,color = Color.Gray)
 
@@ -692,6 +676,7 @@ fun TaskButton(onTaskAddClick: () -> Unit){
 @Composable
 fun DismissableTasks(
                      modifier: Modifier,
+                     color: Color,
                      tasklistModifier: Modifier = Modifier,
                      tasks: List<Task>?,
                      taskselected: Boolean = false,
@@ -703,6 +688,7 @@ fun DismissableTasks(
                 key(item.id){
                     TaskRow(
                             modifier = modifier,
+                            color = color,
                             task = item,
                             taskListItemContentUpdates = taskListItemContentUpdates,
                             onTaskSelected = onTaskSelected,
@@ -977,7 +963,8 @@ private fun TaskContent(
             Row(){
                 OutlinedTextField(
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black)
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
+                        textColor = Color.White
                     ),
                     value = taskContentUpdates.taskTxt,
                     onValueChange = { taskContentUpdates.onTaskTxtChange(it) },
@@ -1006,7 +993,6 @@ private fun TaskContent(
                         )
                 }
             }
-
 
             Row(){
                 Column() {

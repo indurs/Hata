@@ -395,11 +395,13 @@ private fun TodayScreen(onTaskSelected: () -> Unit,
             color = Color.White
         )
 
-        var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha=0.98f))
+        //var modifier = Modifier.background(color = colorResource(id = R.color.bottombar))
+        var color = MaterialTheme.colors.background.copy(alpha=0.90f).compositeOver(Color.White).copy(alpha = 0.50f)
         var tasklistModifier = Modifier.padding(start = 8.dp,end = 8.dp)
 
         DismissableTasks(
-            modifier = modifier,
+            modifier = Modifier,
+            color = color,
             tasklistModifier = tasklistModifier,
             tasks = todayreminders,
             onTaskSelected = onTaskSelected,
@@ -500,11 +502,14 @@ private  fun CalendarTasksSection(
 
             TasksHeader(date = date, month = month, year = year, titileSize = titileSize)
 
-            var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
+            //var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
+            //var color = colorResource(id = R.color.bottombar).copy(alpha=0.98f)
+            var color = MaterialTheme.colors.background.copy(alpha=0.90f).compositeOver(Color.White).copy(alpha = 0.30f)
             println("calendarDateTasks" + calendarDateTasks!!.size)
 
             DismissableTasks(
-                modifier = modifier,
+                modifier = Modifier,
+                color = color,
                 tasks = calendarDateTasks,
                 onTaskSelected = onTaskSelected,
                 taskselected = taskselected,
@@ -853,6 +858,7 @@ fun CalendarColumnSurface(
             .padding(4.dp)
             ,color = colorResource(id = R.color.cal_mon_year_sec),
             onClick = {
+
                         setCalendarView()
                         onSelectCalendarDate(date)
                       },

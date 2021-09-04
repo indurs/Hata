@@ -20,11 +20,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.statusBarsPadding
+import com.oi.hata.R
 import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.model.Group
@@ -116,7 +120,7 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-fun Tasks(modifier: Modifier = Modifier,
+fun Tasks(
           taskContentUpdates: TaskContentUpdates,
           taskListItemContentUpdates: TaskListItemContentUpdates,
           onTaskSelected: () -> Unit,
@@ -132,10 +136,11 @@ fun Tasks(modifier: Modifier = Modifier,
 
     val height = with(LocalDensity.current){ (200.dp  - groupscroll.toDp() + taskscroll.value.toDp())  }
 
+    var color = MaterialTheme.colors.background.copy(alpha=0.50f)
 
     TaskList(
-        modifier = modifier,
-        taskRowModifier = Modifier,
+        modifier = Modifier,
+        color = color,
         groupTask = groupTask,
         onTaskSelected = onTaskSelected,
         taskListItemContentUpdates = taskListItemContentUpdates,

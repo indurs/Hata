@@ -77,7 +77,7 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
     //val reminderViewModel: ReminderViewModel = viewModel()
     //val viewState by reminderViewModel.reminderState.collectAsState()
 
-    HataCalendarTheme {
+
 
         /*Scaffold(
             topBar = { TopBar(reminderViewModel.reminder,onCompleteCustomReminder = onCompleteCustomReminder)},
@@ -94,7 +94,7 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
             onCloseCustomReminder = onCloseCustomReminder,
             shape = shape)
 
-    }
+
 
     //Log.d("CustomReminderPicker >>","******************" + reminderViewModel.reminderTxt)
 
@@ -112,9 +112,11 @@ private fun ReminderContent(reminderViewModel: ReminderViewModel,
                             color: Color = MaterialTheme.colors.surface,
                             shape: Shape
 ){
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colors.background
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            val surfaceColor = MaterialTheme.colors.surface
             val appBarColor = MaterialTheme.colors.surface.copy(alpha = 0.87f)
             Column(
                 modifier = Modifier
@@ -203,7 +205,7 @@ private fun ReminderWhenOptions(reminderViewModel: ReminderViewModel,
 
             Months(selectedMonths = reminderViewModel.months,
                 onMonthSelect = reminderViewModel::onMonthSelected,
-                color = color,
+                color = MaterialTheme.colors.background.copy(alpha=0.50f),
                 shape = shape
             )
 
@@ -307,7 +309,9 @@ private fun Months(selectedMonths: List<String>,
                     ) {
     Card(
         modifier = Modifier.padding(12.dp),
-        shape = shape
+        backgroundColor = MaterialTheme.colors.background.copy(alpha = 0.10f),
+        shape = shape,
+        elevation = 1.dp
     ){
         Column() {
             Header(
@@ -349,6 +353,7 @@ private fun Dates(selectedDates: List<Int>,
 ){
     Card(
         modifier = Modifier.padding(12.dp),
+        backgroundColor = MaterialTheme.colors.background.copy(alpha = 0.10f),
         shape = shape
     ) {
         Column() {
