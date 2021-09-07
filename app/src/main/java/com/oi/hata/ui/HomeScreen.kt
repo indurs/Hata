@@ -289,7 +289,10 @@ private fun HomeTabContent(currentTab: HataHomeScreens,
                         ) {
                         tabs.forEachIndexed { index, tab ->
                             Tab(
-                                modifier = Modifier.padding(4.dp).clip(CircleShape).clipToBounds(),
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .clip(CircleShape)
+                                    .clipToBounds(),
                                 selected = selectedTabIndex == index,
                                 onClick = {
                                     onTabChange(HataHomeScreens.values()[index])
@@ -500,12 +503,19 @@ private  fun CalendarTasksSection(
                 tasksScrollState,
                 orientation = Orientation.Vertical,
                 reverseDirection = true
+
             )
 
             ) {
 
 
-            TasksHeader(date = date, month = month, year = year, titileSize = titileSize)
+            TasksHeader(
+                date = date,
+                month = month,
+                year = year,
+                titileSize = titileSize,
+                color = colorResource(id = R.color.apr)
+            )
 
             //var modifier = Modifier.background(color = colorResource(id = R.color.bottombar).copy(alpha = 0.94f))
             //var color = colorResource(id = R.color.bottombar).copy(alpha=0.98f)
@@ -526,7 +536,13 @@ private  fun CalendarTasksSection(
 }
 
 @Composable
-fun TasksHeader(date:Int,month: String,year: Int,titileSize: Int){
+fun TasksHeader(
+    date:Int,
+    month: String,
+    year: Int,
+    titileSize: Int,
+    color: Color
+){
     var today = GregorianCalendar().get(Calendar.DAY_OF_MONTH)
     Spacer(modifier = Modifier.height(16.dp))
     Row() {
@@ -535,21 +551,21 @@ fun TasksHeader(date:Int,month: String,year: Int,titileSize: Int){
             text = if(date != 0) date.toString() else "",
             fontSize = titileSize.sp,
             style = MaterialTheme.typography.overline,
-            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+            color = if(date == today) color else Color.White
         )
         Text(
             modifier = Modifier.padding(top = 6.dp),
             text = if(date != 0) ReminderUtil.getNumSuffix(date) else "",
             fontSize = titileSize.sp/2,
             style = MaterialTheme.typography.overline,
-            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+            color = if(date == today) color else Color.White
         )
         Text(
             modifier = Modifier.padding(start = 6.dp,top=12.dp),
             text = month,
             fontSize = titileSize.sp/2,
             style = MaterialTheme.typography.overline,
-            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+            color = if(date == today) color else Color.White
         )
 
         Text(
@@ -557,7 +573,7 @@ fun TasksHeader(date:Int,month: String,year: Int,titileSize: Int){
             text = year.toString(),
             fontSize = titileSize.sp/2,
             style = MaterialTheme.typography.overline,
-            color = if(date == today) colorResource(id = R.color.cal_col ) else Color.White
+            color = if(date == today) color else Color.White
         )
     }
 
@@ -834,8 +850,8 @@ fun CalendarColumnItem(date: Int,
         ){
             Text(
                 text = date.toString(),
-                color = if(date == today) colorResource(id = R.color.cal_col) else Color.White,
-                style = MaterialTheme.typography.caption)
+                color = if(date == today) colorResource(id = R.color.apr) else Color.White,
+                style = if(date == today) MaterialTheme.typography.h6 else MaterialTheme.typography.caption)
         }
     }
 }
@@ -932,7 +948,9 @@ private fun ChoiceChipContent(
             else -> MaterialTheme.colors.surface.copy(alpha = 0.30f)
         },
         shape = MaterialTheme.shapes.small,
-        modifier = modifier.clip(MaterialTheme.shapes.small).clipToBounds(),
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .clipToBounds(),
 
         ) {
         Text(
@@ -1060,7 +1078,7 @@ private val CAL_TASKS_TITLE_OFFSET = CALENDAR_SIZE + CAL_TASK_TITLE_SPACE + MON_
 
 private val TASKS_OFFSET = 148.dp
 
-private val MIN_TITLE_SIZE = 24
+private val MIN_TITLE_SIZE = 28
 private val MAX_TITLE_SIZE = 48
 
 class TabContent(val homescreen: HataHomeScreens, val content: @Composable () -> Unit)

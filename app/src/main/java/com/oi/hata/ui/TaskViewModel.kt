@@ -1,6 +1,5 @@
 package com.oi.hata.ui
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,19 +10,13 @@ import com.oi.hata.common.reminder.data.local.model.HataReminder
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.HataTaskDatasource
 import com.oi.hata.task.data.model.*
-import com.oi.hata.task.ui.TaskListItemState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,11 +34,13 @@ class TaskViewModel @Inject constructor(
     var taskCompleted by mutableStateOf<List<Long>>(emptyList())
     var taskImportant by mutableStateOf<List<Long>>(emptyList())
     var todaysTasks by mutableStateOf<List<Long>>(emptyList())
+    var alertDismiss by (mutableStateOf(false))
+
+    var todayTask by mutableStateOf(Task(0, 0, 0, 0, "", "", 0, 0, 0, false, false,null))
 
     var addgroupSelected by mutableStateOf(false)
     var newGroup by mutableStateOf("")
-    var deleteTask by mutableStateOf(Task(0,0,0,0,"","", 0,0,0,false,false))
-
+    var deleteTask by mutableStateOf(Task(0,0,0,0,"","", 0,0,0,false,false,null))
 
     var selectedTaskGroup by mutableStateOf(GroupTask(Group(1,"Tasks"), emptyList()))
 
@@ -70,12 +65,9 @@ class TaskViewModel @Inject constructor(
         taskTxt = reminder
     }
 
-
     fun onDueDateSelect(year: Int,month: Int, day: Int){
-        var mth = if(month < 10) "0" + month.toString() else month.toString()
-        var dt = if(day < 10) "0" + day.toString() else day.toString()
 
-        reminderDueDate = year.toString() + "-" + mth + "-" + dt
+        reminderDueDate = buildDate(year,month,day)
 
         var localDateTime = LocalDateTime.of(year,month,day,0,0)
 
@@ -86,6 +78,12 @@ class TaskViewModel @Inject constructor(
         dueMonth = month
         dueYear = year
         dueDateSelected = true
+    }
+
+    fun buildDate(year: Int,month: Int, day: Int): String{
+        var mth = if(month < 10) "0" + month.toString() else month.toString()
+        var dt = if(day < 10) "0" + day.toString() else day.toString()
+        return dt + "-" + mth + "-" + year.toString()
     }
 
     fun saveTask(groupId: Long){
@@ -105,16 +103,19 @@ class TaskViewModel @Inject constructor(
 
                 hataReminderDatasource.insertTaskReminder(
                     hataReminder = taskUIState.hataReminder,
-                    task = Task(task = taskTxt,
+                    task = Task(
+                        task = taskTxt,
                         taskDueDate = dueDate,
                         taskDueMonth = dueMonth,
                         taskDueYear = dueYear,
-                        tag="",
+                        tag ="",
                         taskReminderId = 0,
                         taskGroupId = groupId,
                         completed = false,
                         importantGroupId = impGroupid,
-                        todaytask = false)
+                        todaytask = false,
+                        taskCreateDate = OffsetDateTime.now()
+                    )
                 )
             }
 
@@ -180,7 +181,7 @@ class TaskViewModel @Inject constructor(
             hataReminderDatasource.getTask(taskId).flowOn(Dispatchers.IO).collect {
                 taskUIState = it
                 taskselected = true
-                reminderDueDate = it.task!!.taskDueDate.toString() + "-" + it.task!!.taskDueMonth.toString() + it.task!!.taskDueYear.toString()
+                reminderDueDate = buildDate(it.task!!.taskDueYear,it.task!!.taskDueMonth,it.task!!.taskDueDate)
                 dueDate = it.task!!.taskDueDate
                 dueMonth = it.task!!.taskDueMonth
                 dueYear = it.task!!.taskDueYear
@@ -217,6 +218,10 @@ class TaskViewModel @Inject constructor(
             updateTaskAsToday(task)
             setTaskToToday(task)
         }
+    }
+
+    fun onAlertDismiss(){
+        alertDismiss = !alertDismiss
     }
 
     suspend fun setImportantTask(task: Task){
@@ -259,7 +264,8 @@ class TaskViewModel @Inject constructor(
                     taskDueMonth = task.taskDueMonth,
                     taskDueYear = task.taskDueYear,
                     completed = task.completed,
-                    todaytask = task.todaytask
+                    todaytask = task.todaytask,
+                    taskCreateDate = task.taskCreateDate
                 ))
             }
         }
@@ -282,12 +288,15 @@ class TaskViewModel @Inject constructor(
                 taskDueMonth = task.taskDueMonth,
                 taskDueYear = task.taskDueYear,
                 completed = !task.completed,
-                todaytask = task.todaytask
+                todaytask = task.todaytask,
+                taskCreateDate = task.taskCreateDate
             ))
         }
     }
 
     suspend fun updateTaskAsToday(task: Task){
+        todayTask = task
+        alertDismiss = false
 
         withContext(Dispatchers.IO){
             hataTaskDatasource.updateTask(task = Task(id = task.id,
@@ -300,7 +309,8 @@ class TaskViewModel @Inject constructor(
                 taskDueMonth = task.taskDueMonth,
                 taskDueYear = task.taskDueYear,
                 completed = task.completed,
-                todaytask = !task.todaytask
+                todaytask = !task.todaytask,
+                taskCreateDate = task.taskCreateDate
             ))
         }
     }
@@ -324,10 +334,12 @@ class TaskViewModel @Inject constructor(
 
             tasks.addAll(todaysTasks)
 
-            if(tasks.contains(task.id))
+            if(tasks.contains(task.id)) {
                 tasks.remove(task.id)
-            else
+            }
+            else {
                 tasks.add(task.id)
+            }
 
             todaysTasks = tasks
         }
@@ -419,6 +431,8 @@ class TaskViewModel @Inject constructor(
     }
 
     fun getImportantTaskCount(): Flow<Int> = hataReminderDatasource.getImportantTasksCount()
+
+
 
     val IMPORTANT_GROUP_ID: Long = 2
 

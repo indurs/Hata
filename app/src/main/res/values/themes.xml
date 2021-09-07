@@ -42,13 +42,12 @@
     </style>
 
     <style name="timePickerstyle" parent="android:Widget.Material.Light.TimePicker">
-        <item name="android:timePickerMode">clock</item>
         <item name="android:headerBackground">@color/numbercolor</item>
-        <item name="android:background">@color/datebackground</item>
+        <item name="android:background">@color/tomorow</item>
         <item name="android:numbersTextColor">@color/numbercolor</item>
         <item name="android:numbersInnerTextColor">@color/numbercolor</item>
         <item name="android:numbersSelectorColor">@color/numbercolor</item>
-        <item name="android:numbersBackgroundColor">@color/headerBackground</item>
+        <item name="android:numbersBackgroundColor">#194ccb</item>
     </style>
 
 

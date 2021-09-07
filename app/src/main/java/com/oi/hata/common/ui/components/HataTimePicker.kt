@@ -8,13 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.viewinterop.AndroidView
+import com.oi.hata.R
 import java.util.*
 
 @Composable
 fun HataTimePicker(onTimeSelected: (Boolean) -> Unit,onTimeSelect: (hour:Int,minute:Int, am: Boolean) -> Unit){
     Column() {
-        AndroidView(factory = { context ->
+        AndroidView(
+            modifier = Modifier.background(color = colorResource(id = R.color.timepicker)),
+            factory = { context ->
             var calendar = GregorianCalendar()
             TimePicker(context).apply {
                 setOnTimeChangedListener { view, hourOfDay, minute ->
@@ -22,7 +26,7 @@ fun HataTimePicker(onTimeSelected: (Boolean) -> Unit,onTimeSelect: (hour:Int,min
                     onTimeSelected(false)
                 }
             }
-        },modifier = Modifier.background(color = Color.Blue)
+        },
         ) {
 
         }

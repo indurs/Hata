@@ -42,7 +42,9 @@
     <color name="important">#3466c2</color>
 
     <color name="cal_mon_year_sec">#3d4550</color>
+    <color name="cal_task_hdr">#008263</color>
     <color name="cal_mon_year">#b9ddff</color>
+    <color name = "timepicker">#191c20</color>
 
     <color name="weekname">#076ff9</color>
     <color name="due">#f28769</color>

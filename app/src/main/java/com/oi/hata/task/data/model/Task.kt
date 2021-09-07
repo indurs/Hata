@@ -2,7 +2,7 @@ package com.oi.hata.task.data.model
 
 import androidx.room.*
 import com.oi.hata.common.reminder.data.local.model.ReminderMaster
-import java.time.LocalDate
+import java.time.OffsetDateTime
 
 @Entity(
     tableName = "task",
@@ -37,5 +37,6 @@ data class Task(
     @ColumnInfo(name = "task_due_month") var taskDueMonth: Int,
     @ColumnInfo(name = "task_due_year") var taskDueYear: Int,
     @ColumnInfo(name = "completed") var completed: Boolean,
-    @ColumnInfo(name = "today_task") var todaytask: Boolean
+    @ColumnInfo(name = "today_task") var todaytask: Boolean,
+    @ColumnInfo(name = "task_create_date") var taskCreateDate: OffsetDateTime?
     )

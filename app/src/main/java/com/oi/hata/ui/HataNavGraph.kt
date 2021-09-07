@@ -1,32 +1,21 @@
 package com.oi.hata.ui
 
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.HiltViewModelFactory
-import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.*
-import androidx.navigation.navigation
-import com.oi.hata.R
-import com.oi.hata.common.ui.reminder.CustomReminderPicker
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.oi.hata.common.reminder.ui.ReminderViewModel
-import com.oi.hata.common.util.ReminderUtil
+import com.oi.hata.common.ui.reminder.CustomReminderPicker
 import com.oi.hata.task.ui.TaskGroups
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import java.util.*
 
 @ExperimentalAnimationApi
@@ -35,15 +24,30 @@ import java.util.*
 fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
              ) {
 
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
     val actions = remember(navController) { HataNavActions(navController) }
 
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
 
-        composable(HataAppDestinations.HOME_ROUTE) {
+        composable(
+            HataAppDestinations.HOME_ROUTE,
+            enterTransition = { initial, _ ->
+                fadeIn(animationSpec = tween(100))
+            },
+            exitTransition = { _, target ->
+                fadeOut(animationSpec = tween(100))
+            },
+            popEnterTransition = { initial, _ ->
+                fadeIn(animationSpec = tween(100))
+            },
+            popExitTransition = { _, target ->
+                fadeOut(animationSpec = tween(100))
+            }
+
+        ) {
             //val reminderViewModel =
                 //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(route = HataAppDestinations.HOME_ROUTE))
 
@@ -66,9 +70,13 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
             )
 
         }
-        composable(HataAppDestinations.REMINDER_ROUTE){
+        composable(
+            HataAppDestinations.REMINDER_ROUTE,
+        ){
             //val reminderViewModel =
                 //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(route = HataAppDestinations.HOME_ROUTE))
+
+
             val reminderViewModel =
                 hiltViewModel<ReminderViewModel>(navController.previousBackStackEntry!!)
             val homeViewModel =
@@ -86,10 +94,26 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
             )
         }
 
-        composable(HataAppDestinations.GROUP_ROUTE){
+        composable(
+            HataAppDestinations.GROUP_ROUTE,
+            enterTransition = { initial, _ ->
+                fadeIn(animationSpec = tween(100))
+            },
+            exitTransition = { _, target ->
+                fadeOut(animationSpec = tween(100))
+            },
+            popEnterTransition = { initial, _ ->
+                fadeIn(animationSpec = tween(100))
+            },
+            popExitTransition = { _, target ->
+                fadeOut(animationSpec = tween(100))
+            }
+        ){
             val reminderViewModel = hiltViewModel<ReminderViewModel>()
 
             val taskViewModel = hiltViewModel<TaskViewModel>()
+
+
             TaskGroups(
                 taskViewModel = taskViewModel,
                 reminderViewModel = reminderViewModel,

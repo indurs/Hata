@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -22,18 +23,25 @@ import java.util.*
 fun HataDatePicker(onDateSelected: (Boolean) -> Unit,onDateSelect : (year: Int,month:Int,date:Int,) -> Unit,){
 
     Column() {
-        AndroidView(factory = { context ->
+        AndroidView(
+            modifier = Modifier.background(color = colorResource(id = R.color.bottombar)),
+            factory = { context ->
 
-            var calendar = GregorianCalendar()
+                var calendar = GregorianCalendar()
 
-            DatePicker(context).apply {
-                init(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH), calendar.get(
-                Calendar.DAY_OF_MONTH)) { view, year, month, day,   ->
-                onDateSelect(year,month+1,day)
-                onDateSelected(false)
+                DatePicker(context).apply {
+                    init(
+                        calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(
+                            Calendar.DAY_OF_MONTH
+                        )
+                    ) { view, year, month, day, ->
+                        onDateSelect(year, month + 1, day)
+                        onDateSelected(false)
 
-            } }
-        },)
+                    }
+                }
+            },
+        )
 
     }
 

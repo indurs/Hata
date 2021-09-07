@@ -1,23 +1,15 @@
 package com.oi.hata.task.ui
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +18,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.statusBarsPadding
 import com.oi.hata.R
@@ -34,6 +27,7 @@ import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.model.Group
 import com.oi.hata.task.data.model.GroupTask
 import com.oi.hata.task.data.model.ImportantGroupTask
+import com.oi.hata.task.data.model.Task
 import com.oi.hata.ui.TaskViewModel
 import kotlinx.coroutines.delay
 
@@ -86,22 +80,41 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
         )
 
         AnimatedVisibility(
+            modifier = Modifier.align(Alignment.BottomCenter),
             visible = !taskViewModel.taskselected,
-            Modifier.align(Alignment.BottomCenter)
+            enter = expandVertically(
+                expandFrom = Alignment.Top,
+                initialHeight = { 100 }
+            ),
+            exit = shrinkVertically(
+                targetHeight = { fullHeight -> fullHeight / 2 },
+                animationSpec = tween(100, easing = FastOutSlowInEasing)
+            )
+
         ) {
             Tasks(
                 groupTask = groupTaskState.value,
                 groupscroll = groupscroll.value,
-                taskContentUpdates = taskContentUpdates,
+                todayTask = taskViewModel.todayTask,
                 taskListItemContentUpdates = taskListItemContentUpdates,
                 taskscroll = taskscroll,
-                onTaskSelected = { taskViewModel.onTaskSelected() }
+                onTaskSelected = { taskViewModel.onTaskSelected() },
+                alertDismiss = taskViewModel.alertDismiss,
+                onAlertDismiss = { taskViewModel.onAlertDismiss() }
             )
         }
         AnimatedVisibility(
+            modifier = Modifier.align(Alignment.BottomCenter),
             visible = taskViewModel.taskselected,
-            Modifier.align(Alignment.BottomCenter)
+            enter = expandVertically(
+                expandFrom = Alignment.Top,
+                initialHeight = { 100 }
+            ),
+            exit = shrinkVertically(
+                targetHeight = { fullHeight -> fullHeight / 2 },
+                animationSpec = tween(100, easing = FastOutSlowInEasing)
             )
+        )
         {
             ReminderBar(
                 reminderContentUpdates = reminderContentUpdates,
@@ -121,12 +134,14 @@ fun TaskGroups(scaffoldState: ScaffoldState = rememberScaffoldState(),
 @ExperimentalMaterialApi
 @Composable
 fun Tasks(
-          taskContentUpdates: TaskContentUpdates,
-          taskListItemContentUpdates: TaskListItemContentUpdates,
-          onTaskSelected: () -> Unit,
-          groupTask: GroupTask?,
-          groupscroll: Int,
-          taskscroll: ScrollState,
+    todayTask: Task,
+    taskListItemContentUpdates: TaskListItemContentUpdates,
+    onTaskSelected: () -> Unit,
+    groupTask: GroupTask?,
+    groupscroll: Int,
+    taskscroll: ScrollState,
+    alertDismiss: Boolean,
+    onAlertDismiss: () -> Unit
 ){
 
     val maxOffset = with(LocalDensity.current) { (MinTopOffset+ MaxGroupHeight).toPx() }
@@ -141,18 +156,21 @@ fun Tasks(
     TaskList(
         modifier = Modifier,
         color = color,
+        todayTask = todayTask,
         groupTask = groupTask,
         onTaskSelected = onTaskSelected,
         taskListItemContentUpdates = taskListItemContentUpdates,
         height = height,
         groupscroll = groupscroll,
         taskscroll = taskscroll,
-        offset = offset,
+        alertDismiss = alertDismiss,
+        onAlertDismiss = onAlertDismiss
     )
 
 
 }
 
+@ExperimentalAnimationApi
 @SuppressLint("UnusedCrossfadeTargetStateParameter")
 @ExperimentalMaterialApi
 @Composable
@@ -168,7 +186,8 @@ fun Groups(
 
     var horscroll = rememberScrollState(0)
 
-    Column(modifier.fillMaxWidth(),
+    Column(
+        modifier.fillMaxWidth(),
     ) {
 
         Spacer(
@@ -183,16 +202,19 @@ fun Groups(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.verticalScroll(groupscroll, enabled = !taskselected)) {
 
-                StaggeredGrid(modifier = Modifier
-                    .animateContentSize()
-                    .horizontalScroll(horscroll),) {
+                StaggeredGrid(
+                    modifier = Modifier
+
+                        .animateContentSize()
+                        .horizontalScroll(horscroll),
+                ) {
 
                     Crossfade(targetState = groupContentUpdates.selectedTaskGroup,
                         modifier = Modifier.animateContentSize(tween(50)),
                         animationSpec = keyframes {
-                            durationMillis = 700
-                            0.01f at 500
-                            1f at 1000
+                            durationMillis = 300
+                            0.01f at 200
+                            1f at 400
                         }
                     ) {
                         groupTasks.forEach { task ->

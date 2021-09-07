@@ -350,9 +350,8 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
-                        INNER JOIN task ON reminder_id = task_reminder_id
-                        WHERE today_task = :todayTask """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM 
+                        task WHERE today_task = :todayTask """)
     fun getTodayTasks(todayTask: Boolean): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
@@ -413,18 +412,13 @@ interface ReminderDao {
         //todaysReminders.addAll(getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date))
         todaysReminders.addAll( getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
         todaysReminders.addAll(getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
-
-
-
-
-
-
-
         todaysReminders.addAll(getDueTasksForDay(calendar.get(Calendar.MONTH)+1,date,calendar.get(Calendar.YEAR)))
+        todaysReminders.addAll(getTodayTasks(todayTask = true))
         //println("getDueTasksForDay >>>>>>>>>>>>>>>>>>>>" + "date "+date +"month "+(calendar.get(Calendar.MONTH)+1) + " year "+calendar.get(Calendar.YEAR))
 
         //println("getDueTasksForDay >>>>>>>>>>>>>>>>>>>>"+getDueTasksForDay(calendar.get(Calendar.MONTH)+1,date,calendar.get(Calendar.YEAR)))
 
+        println("getTodayTasks >>>>>>>>>>>>>>>>>>>"+getTodayTasks(true).size)
 
         for(i in 0 until weekDays!!.size){
             //println("week day "+weekDays[i] )

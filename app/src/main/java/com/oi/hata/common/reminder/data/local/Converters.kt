@@ -7,15 +7,15 @@ import java.time.format.DateTimeFormatter
 
 class Converters {
 
-    val formatter = DateTimeFormatter.ISO_DATE
+    val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
     @TypeConverter
-    fun toOffSetDateTime(value:String?): LocalDate?{
-        return value?.let { formatter.parse(value,LocalDate::from) }
+    fun toOffSetDateTime(value:String?): OffsetDateTime?{
+        return value?.let { formatter.parse(value,OffsetDateTime::from) }
     }
 
     @TypeConverter
-    fun fromOffSetDateTime(value: LocalDate?): String?{
+    fun fromOffSetDateTime(value: OffsetDateTime?): String?{
         return value?.format(formatter)
     }
 }

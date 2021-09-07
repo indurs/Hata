@@ -26,6 +26,7 @@
         <item name="android:colorAccent">#ff4c5663</item>
         <item name="android:statusBarColor">@color/immersive_sys_ui</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:timePickerStyle">@style/timePickerstyle</item>
     </style>
 
     <style name="date_picker_theme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
@@ -33,5 +34,16 @@
         <item name="colorOnPrimary">#FF003087</item>
         <item name="colorSurface">#ff4d4c59</item>
     </style>
+
+    <style name="timePickerstyle" parent="android:Widget.Material.Light.TimePicker">
+        <item name="android:headerBackground">#909096</item>
+        <item name="android:numbersTextColor">#000000</item>
+        <item name="android:numbersInnerTextColor">#000000</item>
+        <item name="android:numbersSelectorColor">@color/bottombar
+        </item>
+        <item name="android:numbersBackgroundColor">#909096</item>
+
+    </style>
+
 
 </resources>
