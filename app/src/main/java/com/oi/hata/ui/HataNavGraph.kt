@@ -35,16 +35,16 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
         composable(
             HataAppDestinations.HOME_ROUTE,
             enterTransition = { initial, _ ->
-                fadeIn(animationSpec = tween(100))
+                fadeIn(animationSpec = tween(200))
             },
             exitTransition = { _, target ->
-                fadeOut(animationSpec = tween(100))
+                fadeOut(animationSpec = tween(200))
             },
             popEnterTransition = { initial, _ ->
-                fadeIn(animationSpec = tween(100))
+                fadeIn(animationSpec = tween(200))
             },
             popExitTransition = { _, target ->
-                fadeOut(animationSpec = tween(100))
+                fadeOut(animationSpec = tween(200))
             }
 
         ) {
@@ -73,6 +73,7 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
         composable(
             HataAppDestinations.REMINDER_ROUTE,
         ){
+
             //val reminderViewModel =
                 //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(route = HataAppDestinations.HOME_ROUTE))
 
@@ -97,16 +98,16 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
         composable(
             HataAppDestinations.GROUP_ROUTE,
             enterTransition = { initial, _ ->
-                fadeIn(animationSpec = tween(100))
+                fadeIn(animationSpec = tween(200))
             },
             exitTransition = { _, target ->
-                fadeOut(animationSpec = tween(100))
+                fadeOut(animationSpec = tween(200))
             },
             popEnterTransition = { initial, _ ->
-                fadeIn(animationSpec = tween(100))
+                fadeIn(animationSpec = tween(200))
             },
             popExitTransition = { _, target ->
-                fadeOut(animationSpec = tween(100))
+                fadeOut(animationSpec = tween(200))
             }
         ){
             val reminderViewModel = hiltViewModel<ReminderViewModel>()

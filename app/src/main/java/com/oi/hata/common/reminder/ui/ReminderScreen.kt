@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.updateTransition
@@ -253,6 +254,7 @@ private fun When(reminder: String){
 
     ReminderSurface(color=Color.White) {
         Text(
+            modifier = Modifier.animateContentSize(),
             text = if(reminder.isNotEmpty()) reminder else stringResource(id = R.string.emptyreminder),
             color = colorResource(id = R.color.customselect),
             style = MaterialTheme.typography.overline,

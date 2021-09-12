@@ -191,116 +191,142 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    @Query(""" 
+                    SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date 
+                    FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id 
+                    WHERE reminder_custom_when_type = :whenSelectType ORDER BY datetime(task_create_date) DESC """)
     fun getAllReminders(whenSelectType: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+    @Query(""" 
+                    SELECT task_id,important_group_id,completed,task,task_create_date FROM reminder_master 
+                    INNER JOIN task ON reminder_id = task_reminder_id WHERE reminder_custom_when_type = :whenSelectType ORDER BY datetime(task_create_date) DESC """)
     fun getAllRemindersCalendar(whenSelectType: String): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType AND reminder_date = :date """)
+    @Query(""" 
+                    SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date
+                    FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id 
+                    INNER JOIN reminder_date ON reminder_id = date_reminder_id 
+                    where reminder_custom_when_type = :whenSelectType AND reminder_date = :date ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforDate(whenSelectType: String,date: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_date,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN reminder_date ON reminder_id = date_reminder_id where reminder_custom_when_type = :whenSelectType """)
+    @Query(""" 
+                    SELECT task_id,reminder_date,important_group_id,completed,task,task_create_date FROM reminder_master 
+                    INNER JOIN task ON reminder_id = task_reminder_id 
+                    INNER JOIN reminder_date ON reminder_id = date_reminder_id 
+                    where reminder_custom_when_type = :whenSelectType ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforDate(whenSelectType: String): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    @Query(""" 
+                SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date
+                FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id 
+                INNER JOIN  reminder_month ON reminder_id = month_reminder_id 
+                WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforMonth(whenSelectType: String,month: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,important_group_id,completed,task FROM reminder_master INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+    @Query(""" 
+                    SELECT task_id,important_group_id,completed,task,task_create_date FROM reminder_master 
+                    INNER JOIN task ON reminder_id = task_reminder_id INNER JOIN  
+                    reminder_month ON reminder_id = month_reminder_id WHERE reminder_custom_when_type = :whenSelectType 
+                    AND reminder_month = :month ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforMonthCalendar(whenSelectType: String,month: String): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+    @Query(""" 
+                        SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id 
-                        INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_date = :date AND reminder_month = :month """)
+                        INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE 
+                        reminder_custom_when_type = :whenSelectType AND reminder_date = :date AND reminder_month = :month ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforMonthDate(whenSelectType: String,month: String, date: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_date,important_group_id,completed,task FROM reminder_master
+    @Query(""" SELECT task_id,reminder_date,important_group_id,completed,task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id 
-                        INNER JOIN reminder_date ON reminder_id = date_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month """)
+                        INNER JOIN reminder_date ON reminder_id = date_reminder_id 
+                        WHERE reminder_custom_when_type = :whenSelectType AND reminder_month = :month ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforMonthDate(whenSelectType: String,month: String,): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+    @Query("""    SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
-                        INNER JOIN reminder_week ON reminder_id = week_reminder_id WHERE reminder_custom_when_type = :whenSelectType AND reminder_week = :week """)
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id 
+                        WHERE reminder_custom_when_type = :whenSelectType AND reminder_week = :week ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforWeek(whenSelectType: String,week: String): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
-                        INNER JOIN reminder_week ON reminder_id = week_reminder_id WHERE reminder_custom_when_type = :whenSelectType """)
+                        INNER JOIN reminder_week ON reminder_id = week_reminder_id 
+                        WHERE reminder_custom_when_type = :whenSelectType ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforWeek(whenSelectType: String,): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
                         INNER JOIN reminder_weeknum ON week_reminder_id
                         WHERE reminder_custom_when_type = :whenSelectType AND reminder_week = :week
-                        AND reminder_weeknum = :weekNum """)
+                        AND reminder_weeknum = :weekNum ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforWeekWeekNum(whenSelectType: String,week: String, weekNum: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
                         INNER JOIN reminder_weeknum ON week_reminder_id
-                        WHERE reminder_custom_when_type = :whenSelectType """)
+                        WHERE reminder_custom_when_type = :whenSelectType ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforWeekWeekNum(whenSelectType: String,): List<CalendarTaskItem>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id
                         WHERE reminder_custom_when_type = :whenSelectType 
                         AND reminder_month = :month
-                        AND reminder_week = :week
+                        AND reminder_week = :week ORDER BY datetime(task_create_date) DESC
                         """)
     fun getRemindersforMonthWeek(whenSelectType: String,month: String, week: String): List<Task>
 
@@ -308,12 +334,12 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,important_group_id,completed,task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id
                         WHERE reminder_custom_when_type = :whenSelectType 
-                        AND reminder_month = :month
+                        AND reminder_month = :month ORDER BY datetime(task_create_date) DESC
                         """)
     fun getRemindersforMonthWeek(whenSelectType: String,month: String,): List<CalendarTaskItem>
 
@@ -321,7 +347,8 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM reminder_master
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,
+                        important_group_id,completed,today_task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
@@ -329,20 +356,20 @@ interface ReminderDao {
                         WHERE reminder_custom_when_type = :whenSelectType 
                         AND reminder_month = :month
                         AND reminder_week = :week
-                        AND reminder_weeknum = :weekNum """)
+                        AND reminder_weeknum = :weekNum ORDER BY datetime(task_create_date) DESC """)
     fun getRemindersforMonthWeekWeekNum(whenSelectType: String,month: String, week: String, weekNum: Int): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task FROM reminder_master
+    @Query(""" SELECT task_id,reminder_week,reminder_weeknum,important_group_id,completed,task,task_create_date FROM reminder_master
                         INNER JOIN task ON reminder_id = task_reminder_id
                         INNER JOIN reminder_month ON reminder_id = month_reminder_id
                         INNER JOIN reminder_week ON reminder_id = week_reminder_id 
                         INNER JOIN reminder_weeknum ON week_reminder_id
                         WHERE reminder_custom_when_type = :whenSelectType 
-                        AND reminder_month = :month
+                        AND reminder_month = :month ORDER BY datetime(task_create_date) DESC
                          """)
     fun getRemindersforMonthWeekWeekNum(whenSelectType: String,month: String,): List<CalendarTaskItem>
 
@@ -350,15 +377,16 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM 
-                        task WHERE today_task = :todayTask """)
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM 
+                        task WHERE today_task = :todayTask ORDER BY datetime(task_create_date) DESC """)
     fun getTodayTasks(todayTask: Boolean): List<Task>
 
     @SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task,task_due_date,important_group_id,completed FROM task WHERE task_reminder_id IS NULL and task_due_month = :month
+    @Query(""" SELECT task_id,task,task_due_date,important_group_id,completed,task_create_date FROM task 
+                     WHERE task_reminder_id IS NULL and task_due_month = :month ORDER BY datetime(task_create_date) DESC
                          """)
     fun getDueTasks(month: Int): List<CalendarTaskItem>
 
@@ -366,8 +394,9 @@ interface ReminderDao {
     @Ignore
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task FROM task WHERE task_reminder_id IS NULL  AND 
-                     task_due_month = :month and task_due_date = :date AND task_due_year = :year
+    @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM task 
+                        WHERE task_reminder_id IS NULL  AND 
+                     task_due_month = :month and task_due_date = :date AND task_due_year = :year ORDER BY datetime(task_create_date) DESC
                          """)
     fun getDueTasksForDay(month: Int,date:Int,year:Int): List<Task>
 
@@ -397,13 +426,13 @@ interface ReminderDao {
 
         var weekDays = monthCalendar.get(weekDayName)
 
-        /*println("getRemindersforMonthDate "+ getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name ,month!!,date))
+        println("getRemindersforMonthDate "+ getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name ,month!!,date))
         println("getAllReminders(ReminderUtil.WhenSelectType.EVERYDAY.name) "+getAllReminders(ReminderUtil.EVERYDAY))
         println("getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name,date) "+ getRemindersforDate( ReminderUtil.WhenSelectType.DATE.name,date))
         println("getRemindersforMonth( ReminderUtil.WhenSelectType.MONTH.name,month!!) "+getRemindersforMonth( ReminderUtil.WhenSelectType.MONTH.name,month!!))
         println(" getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date "+getRemindersforMonthDate( ReminderUtil.WhenSelectType.MONTHDATE.name,month,date))
         println("getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName) "+getRemindersforWeek( ReminderUtil.WhenSelectType.WEEK.name,weekDayName))
-        println("getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName) "+getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))*/
+        println("getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName) "+getRemindersforMonthWeek( ReminderUtil.WhenSelectType.MONTHWEEK.name,month,weekDayName))
 
         todaysReminders.addAll(getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name ,month!!,date))
         todaysReminders.addAll(getAllReminders(ReminderUtil.EVERYDAY))

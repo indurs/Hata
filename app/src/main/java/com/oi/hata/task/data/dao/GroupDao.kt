@@ -48,7 +48,7 @@ interface GroupDao {
 
     @RewriteQueriesToDropUnusedColumns
     @Transaction
-    @Query("SELECT * FROM taskgroup")
+    @Query("SELECT * FROM taskgroup ")
     fun getTaskGroups(): Flow<List<GroupTask>>
 
     @Transaction
@@ -77,7 +77,7 @@ interface GroupDao {
                     }
                 }
 
-                groupTask = GroupTask(Group(2,"Important"),tasks)
+                groupTask = GroupTask(Group(2,"Important"),tasks.sortedByDescending { task -> task.taskCreateDate })
 
             }
 
@@ -89,7 +89,7 @@ interface GroupDao {
                     tasks.addAll(it)
                 }
             }
-            groupTask = GroupTask(Group(grpTask.Group!!.id,groupName),tasks)
+            groupTask = GroupTask(Group(grpTask.Group!!.id,groupName),tasks.sortedByDescending { task -> task.taskCreateDate })
         }
 
         emit(groupTask)

@@ -403,6 +403,7 @@ private fun TodayScreen(onTaskSelected: () -> Unit,
             color = Color.White
         )
 
+        Spacer(modifier = Modifier.height(4.dp))
         //var modifier = Modifier.background(color = colorResource(id = R.color.bottombar))
         var color = MaterialTheme.colors.background.copy(alpha=0.90f).compositeOver(Color.White).copy(alpha = 0.50f)
         var tasklistModifier = Modifier.padding(start = 8.dp,end = 8.dp)
@@ -601,6 +602,12 @@ fun HataCalendarSection(
 
     AnimatedVisibility(
         visible = taskoffset > calMinOffset,
+        enter =
+            fadeIn(animationSpec = tween(100))
+        ,
+        exit =
+            fadeOut(animationSpec = tween(700))
+        ,
     ) {
         HataCalendarSectionContent(
             tasksScrollState = tasksScrollState,

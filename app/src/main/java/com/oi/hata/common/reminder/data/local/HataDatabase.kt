@@ -54,10 +54,10 @@ abstract class HataDatabase : RoomDatabase() {
 
 private const val DATABASE_NAME = "Hata"
 private val groups = listOf<Group>(Group(1,"Tasks"),Group(2,"Important"), Group(3, "Assignment"),
-    Group(4,"Meeting"), Group(5,"Project"), Group(6,"Picnic"), Group(7,"Groceries"),
-    Group(8,"Event3"), Group(9,"Event4"),Group(10,"Event5"),
-    Group(11,"Event6"), Group(12,"Event7"),Group(13,"Event8"),
-    Group(14,"Event9"), Group(15,"Event10"),Group(16,"Event11"),
-    Group(17,"Event17"), Group(18,"Event18"),Group(19,"Event19"),
-    Group(20,"Event20"), Group(21,"Event21"),Group(22,"Event22"),
+    Group(4,"Meeting"), Group(5,"General"), Group(6,"App Design"), Group(7,"Gardening"),
+    Group(8,"Groceries"), Group(9,"Cleaning"),Group(10,"Exercise"),
+    Group(11,"Reading"), Group(12,"New Skills"),Group(13,"Cooking"),
+    Group(14,"Payments"), Group(15,"Birthday Party"),Group(16,"Project"),
+    Group(17,"Appointments"), Group(18,"Picnic"),Group(19,"Laundry"),
+    Group(20,"Travel"), Group(21,"Bookings"),Group(22,"Budget"),
 )

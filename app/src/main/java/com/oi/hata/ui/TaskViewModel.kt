@@ -101,6 +101,7 @@ class TaskViewModel @Inject constructor(
                 else
                     impGroupid = 22
 
+                println("DATE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+OffsetDateTime.now())
                 hataReminderDatasource.insertTaskReminder(
                     hataReminder = taskUIState.hataReminder,
                     task = Task(

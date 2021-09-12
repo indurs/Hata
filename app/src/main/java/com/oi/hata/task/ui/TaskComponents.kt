@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.*
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -151,10 +152,7 @@ fun TaskList(
             alertDismiss: Boolean,
             onAlertDismiss: () -> Unit
     ){
-
-
         Column(
-            modifier = Modifier.animateContentSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TodayAlert(modifier = modifier, todayTask = todayTask, alertDismiss = alertDismiss, onTimeout = onAlertDismiss)
@@ -267,7 +265,7 @@ private fun TaskRow(
     AnimatedVisibility(visible = (dismissState.currentValue != DismissValue.DismissedToStart)) {
         SwipeToDismiss(
             state = dismissState,
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = 2.dp),
             directions = setOf( DismissDirection.EndToStart,),
             dismissThresholds = { direction ->
                 FractionalThreshold(if (direction == DismissDirection.EndToStart) 0.3f else 0.5f)
@@ -412,7 +410,7 @@ fun TaskItem(
                 .weight(3f)
 
 
-                .padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 2.dp)
             ) {
                 Text(
                     text = task.task,
@@ -498,7 +496,9 @@ private fun AddTaskHeader(
     Row(verticalAlignment = Alignment.CenterVertically) {
 
         Column(Modifier.padding(start=8.dp,top=8.dp,bottom = 8.dp,end = 8.dp)) {
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onTaskSelected() }) {
                 Surface(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
@@ -510,9 +510,8 @@ private fun AddTaskHeader(
                         ),
                     color = colorResource(id = R.color.bottombar).copy(alpha = 0.98f),
 
-                    onClick = { onTaskSelected() }
                 ) {
-                    Row(){
+                    Row(Modifier.padding(2.dp)){
                         Icon(
                             painter = painterResource(R.drawable.ic_action_add),
                             modifier = Modifier
@@ -573,7 +572,7 @@ private fun AddGroupButton(groupContentUpdates: GroupContentUpdates){
                         AddGroup(groupContentUpdates = groupContentUpdates)
                     }
                     AnimatedVisibility(visible = !groupContentUpdates.addGroupSelected) {
-                        Row(modifier = Modifier.padding(4.dp)) {
+                        Row(modifier = Modifier.padding(6.dp)) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_action_add),
                                 modifier = Modifier
@@ -610,7 +609,7 @@ private fun AddGroup(groupContentUpdates: GroupContentUpdates){
         BasicTextField( value = groupContentUpdates.newGroup,
             modifier = Modifier
                 .padding(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 4.dp)
-                .size(height = 20.dp, width = 160.dp),
+                .size(height = 22.dp, width = 160.dp),
             onValueChange = { groupContentUpdates.onAddNewGroup(it)},
             textStyle = TextStyle(color = Color.White, ),
             enabled = true,
@@ -1058,6 +1057,7 @@ private fun TaskContent(
     var (datePickerSelected,onDatePickerSelected) = remember { mutableStateOf(false) }
     val taskTransitionState = taskTransition(reminderContentUpdates.reminderSelected)
 
+
     Surface(modifier = Modifier
         .fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 4.dp,topEnd = 4.dp),
@@ -1089,6 +1089,7 @@ private fun TaskContent(
 
             Row(){
                 OutlinedTextField(
+                    modifier = Modifier.size(348.dp,56.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         unfocusedBorderColor = Color.White.copy(alpha = 0.90f).compositeOver(Color.Black),
                         textColor = Color.White
