@@ -5,13 +5,13 @@ import androidx.room.*
 @Entity(
     tableName = "reminder_date",
     foreignKeys = [
-    ForeignKey(
-        entity = ReminderMaster::class,
-        parentColumns = ["reminder_id"],
-        childColumns = ["date_reminder_id"],
-        onDelete = ForeignKey.CASCADE
-    )
-],
+        ForeignKey(
+            entity = ReminderMaster::class,
+            parentColumns = ["reminder_id"],
+            childColumns = ["date_reminder_id"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [Index(value = ["date_reminder_id"])]
 )
 data class ReminderDate(

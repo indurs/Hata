@@ -1,11 +1,10 @@
 package com.oi.hata.common.reminder.ui
 
-import android.util.Log
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.oi.hata.common.reminder.data.local.datasource.HataReminderDatasource
 import com.oi.hata.common.reminder.data.local.model.HataReminder
-import com.oi.hata.common.reminder.data.local.model.ReminderMaster
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.common.util.ReminderUtil.CUSTOM
 import com.oi.hata.common.util.ReminderUtil.EVERYDAY
@@ -16,13 +15,11 @@ import com.oi.hata.common.util.ReminderUtil.TODAY
 import com.oi.hata.common.util.ReminderUtil.TOMORROW
 import com.oi.hata.common.util.ReminderUtil.buildNumSuffix
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import java.time.*
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataReminderDatasource): ViewModel() {
+class ReminderViewModel @Inject constructor(): ViewModel() {
 
     var months by mutableStateOf<List<String>>(emptyList())
     var dates by mutableStateOf<List<Int>>(emptyList())
@@ -37,8 +34,8 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     var pickDateSelected by mutableStateOf(false)
     var reminderSelected by mutableStateOf(false)
 
-    var reminderOptSelected by mutableStateOf(ReminderUtil.NONE)
-    var reminderPrevOpt = ReminderUtil.NONE
+    var reminderOptSelected by mutableStateOf(NONE)
+    var reminderPrevOpt = NONE
     var reminderCustomSelected by mutableStateOf(false)
     var pickAdate by mutableStateOf("")
 
@@ -47,12 +44,8 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
 
     var reminderEndYear: Int = 0
 
-    init{
-       Log.d("REMINDER VIEW MODEL","INITIAL>>>>>>>>>>>>>>>>>>*********************>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*****************************************************")
-    }
 
     fun onMonthSelected(month: String){
-        Log.d("onMonthSelected", month)
         val mths = mutableListOf<String>()
         mths.addAll(months)
         if(mths.contains(month))
@@ -68,8 +61,7 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     }
 
     fun onDateSelected(date: Int){
-        //_selectedDates.value = date
-        //Log.d("onDateSelected ", "" + date)
+
         val dts = mutableListOf<Int>()
         dts.addAll(dates)
         if(dts.contains(date))
@@ -83,8 +75,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     }
 
     fun onWeekSelected(week: String){
-        //_selectedDates.value = date
-        //Log.d("onWeekSelected ", week)
         val wks = mutableListOf<String>()
         wks.addAll(weeks)
         if(wks.contains(week))
@@ -99,8 +89,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     }
 
     fun onWeekNumSelected(weeknum: Int){
-        //_selectedDates.value = date
-        Log.d("onWeekNumSelected ", ""+weeknum)
         val wkns = mutableListOf<Int>()
         wkns.addAll(weeknums)
         if(wkns.contains(weeknum))
@@ -118,7 +106,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
 
     fun onReminderOptionSelected(remOption:String){
         reminderPrevOpt = reminderOptSelected
-        println("onReminderOptionSelected>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>0"+remOption)
         reminderOptSelected = remOption
         pickAdate = ""
 
@@ -143,25 +130,21 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     }
 
     fun onReminderCustomClick(hataReminder: HataReminder?){
-        println("onReminderCustomClick>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         reminderPrevOpt = reminderOptSelected
         pickAdate = ""
         reminderCustomSelected = true
         reminderOptSelected = CUSTOM
-        //
+
         // clearCustomReminderValues()
         resetCustomReminderValues()
 
         if (hataReminder != null) {
-            println("option type >>>>>>>>>>>>>>>>************************************>"+hataReminder!!.reminderOption)
-            println("onReminderCustomClick initCustomReminderValues***************************************************************")
             initReminderValues(hataReminder)
         }
 
     }
 
     fun onPickaDateSelect(year: Int,month: Int, day: Int){
-
         val dts = mutableListOf<Int>()
         dts.add(day)
         dates = dts
@@ -185,8 +168,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     fun onReminderTimeSelected(selected: Boolean){
         reminderTimeSelected = selected
     }
-
-
 
     fun onReminderSelected(selected: Boolean){
         reminderSelected = selected
@@ -228,8 +209,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
             reminder = ""
         }
 
-        Log.d("buildreminder ", " choosen type"+ choosenType + "reminder >>>>>>>>>>>>>>>>>>>>>>>>>"+reminder)
-
     }
 
     fun setCustomReminderType(){
@@ -256,7 +235,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
     }
 
     fun clearCustomReminderValues(hataReminder: HataReminder?){
-        println("clearCustomReminderValues>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         months = emptyList()
         dates = emptyList()
         weeks = emptyList()
@@ -306,14 +284,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
 
         }
     }
-    /* getTodaysReminders(): Flow<List<ReminderMaster>> = flow{
-
-       viewModelScope.launch {
-           hataReminderDatasource.getTodaysReminders().collect { emit(it) }
-       }
-
-    }
-    */
 
     fun buildReminderStr(): String{
         var reminder = ""
@@ -363,7 +333,7 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
                     )
                 )
             }
-            //ReminderUtil.WhenSelectType.
+
         }
 
         return reminder
@@ -372,7 +342,6 @@ class ReminderViewModel @Inject constructor(val hataReminderDatasource: HataRemi
 
     fun getReminderValues(): HataReminder{
 
-        println("getReminderValues  **********************************************************"+reminderOptSelected)
         return HataReminder(
             reminderMonths = months,
             reminderDates = dates,

@@ -5,14 +5,19 @@ import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.data.model.GroupTask
 import com.oi.hata.task.data.model.Task
-import com.oi.hata.ui.TaskViewModel
 
 
 fun TaskContentUpdates(taskViewModel: TaskViewModel, groupId: Long = 0): TaskContentUpdates {
     val taskContentUpdates = TaskContentUpdates(
         onTaskTxtChange = { taskViewModel.onTaskTxtChange(it) },
         onSaveTask = { taskViewModel.saveTask(it) },
-        onDueDateSelect = { year, month, day -> taskViewModel.onDueDateSelect(year = year,month = month,day = day) },
+        onDueDateSelect = { year, month, day ->
+            taskViewModel.onDueDateSelect(
+                year = year,
+                month = month,
+                day = day
+            )
+        },
         onCloseTask = taskViewModel::resetValues,
         taskTxt = taskViewModel.taskTxt,
         dueDateSelected = taskViewModel.dueDateSelected,
@@ -22,15 +27,18 @@ fun TaskContentUpdates(taskViewModel: TaskViewModel, groupId: Long = 0): TaskCon
     return taskContentUpdates
 }
 
-fun TaskListItemContentUpdates(taskViewModel: TaskViewModel,displayToday: Boolean) : TaskListItemContentUpdates{
+fun TaskListItemContentUpdates(
+    taskViewModel: TaskViewModel,
+    displayToday: Boolean
+): TaskListItemContentUpdates {
     val taskListItemContentUpdates = TaskListItemContentUpdates(
         onTaskItemClick = { taskViewModel.onTaskItemClick(it) },
         onTaskCompleted = { taskViewModel.onTaskCompleted(it) },
         taskcompleted = taskViewModel.taskCompleted,
         taskImportant = taskViewModel.taskImportant,
         onTaskImportant = { taskViewModel.onTaskImportant(it) },
-        onDeleteTask = { taskViewModel.onDeleteTask(it)},
-        onTaskSetForToday = { taskViewModel.onTaskSetForToday(it)},
+        onDeleteTask = { taskViewModel.onDeleteTask(it) },
+        onTaskSetForToday = { taskViewModel.onTaskSetForToday(it) },
         todaysTasks = taskViewModel.todaysTasks,
         displayToday = displayToday
     )
@@ -38,19 +46,29 @@ fun TaskListItemContentUpdates(taskViewModel: TaskViewModel,displayToday: Boolea
     return taskListItemContentUpdates
 }
 
-fun ReminderContentUpdates(reminderViewModel: ReminderViewModel,taskViewModel: TaskViewModel): ReminderContentUpdates{
+fun ReminderContentUpdates(
+    reminderViewModel: ReminderViewModel,
+    taskViewModel: TaskViewModel
+): ReminderContentUpdates {
     val reminderContentUpdates = ReminderContentUpdates(
-        onTimeSelect = { hour, minute, am -> reminderViewModel.onTimeSelect(hour,minute,am)},
+        onTimeSelect = { hour, minute, am -> reminderViewModel.onTimeSelect(hour, minute, am) },
         onTimeSelected = reminderViewModel::onReminderTimeSelected,
         onReminderSelected = reminderViewModel::onReminderSelected,
-        onReminderOptSelected = reminderViewModel::onReminderOptionSelected ,
-        onPickaDate = { year, month, day -> reminderViewModel.onPickaDateSelect(year = year,month = month, day = day) },
+        onReminderOptSelected = reminderViewModel::onReminderOptionSelected,
+        onPickaDate = { year, month, day ->
+            reminderViewModel.onPickaDateSelect(
+                year = year,
+                month = month,
+                day = day
+            )
+        },
         onPickaDateSelected = reminderViewModel::onPickaDateSelected,
         resetReminder = taskViewModel::resetReminder,
-        initReminderValues = { taskViewModel.setReminderFromTaskUIState()
+        initReminderValues = {
+            taskViewModel.setReminderFromTaskUIState()
             reminderViewModel.initReminderValues(taskViewModel.getTaskReminder())
         },
-        onClearReminderValues =  {
+        onClearReminderValues = {
             taskViewModel.resetTaskReminder()
             reminderViewModel.initReminderValues(taskViewModel.getTaskReminder())
         },
@@ -65,15 +83,15 @@ fun ReminderContentUpdates(reminderViewModel: ReminderViewModel,taskViewModel: T
     return reminderContentUpdates
 }
 
-fun CustomReminderContentUpdates(reminderViewModel: ReminderViewModel,
-                                 taskViewModel: TaskViewModel,
-                                 onCustomReminderSelect: () -> Unit
-) : CustomReminderContentUpdates{
+fun CustomReminderContentUpdates(
+    reminderViewModel: ReminderViewModel,
+    taskViewModel: TaskViewModel,
+    onCustomReminderSelect: () -> Unit
+): CustomReminderContentUpdates {
     val customReminderContentUpdates = CustomReminderContentUpdates(
         onCustomReminderSelect = onCustomReminderSelect,
         onCustomReminderInit = {
-            println("onCustomReminderInitialize >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-            if(reminderViewModel.reminderOptSelected != ReminderUtil.CUSTOM){
+            if (reminderViewModel.reminderOptSelected != ReminderUtil.CUSTOM) {
                 taskViewModel.resetReminder()
             }
             reminderViewModel.onReminderCustomClick(taskViewModel.getReminder())
@@ -89,7 +107,7 @@ fun GroupContentUpdates(
     taskViewModel: TaskViewModel,
     importantTasksCount: Int,
     onBackTaskScreen: () -> Unit
-): GroupContentUpdates{
+): GroupContentUpdates {
     val groupContentUpdates = GroupContentUpdates(
         selectedTaskGroup = taskViewModel.selectedTaskGroup,
         onSelectedTaskGroup = { taskViewModel.onSelectedTaskGroup(it) },
@@ -97,7 +115,7 @@ fun GroupContentUpdates(
         addGroupSelected = taskViewModel.addgroupSelected,
         onAddgroupSelected = { taskViewModel.onAddgroupSelected() },
         newGroup = taskViewModel.newGroup,
-        onAddNewGroup = { taskViewModel.OnAddNewGroup(it)},
+        onAddNewGroup = { taskViewModel.OnAddNewGroup(it) },
         saveNewGroup = { taskViewModel.saveNewGroup(it) },
         onBackTaskScreen = onBackTaskScreen
     )
@@ -121,21 +139,20 @@ interface TaskContentState {
     var taskTxt: String
     var taskselected: Boolean
     var dueDateSelected: Boolean
-    fun onDueDateSelect (year: Int, month: Int, day:Int)
-    fun onSaveTask (task: Task)
-    fun onCloseTask ()
+    fun onDueDateSelect(year: Int, month: Int, day: Int)
+    fun onSaveTask(task: Task)
+    fun onCloseTask()
 }
 
 @Stable
-interface GroupState{
-   var selectedTaskGroup: GroupTask
-   var addgroupSelected: Boolean
-   var newGroup: String
-   val saveNewGroup: (String) -> Unit
+interface GroupState {
+    var selectedTaskGroup: GroupTask
+    var addgroupSelected: Boolean
+    var newGroup: String
+    val saveNewGroup: (String) -> Unit
 }
 
 //fun TaskState(): TaskState =
-
 
 
 /*

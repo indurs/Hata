@@ -1,53 +1,47 @@
 package com.oi.hata.common.ui.reminder
 
-import HataCalendarTheme
-import android.util.Log
-import androidx.annotation.FloatRange
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.focusModifier
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import apr
-import aug
+
 import com.google.accompanist.insets.statusBarsHeight
 import com.oi.hata.R
-import com.oi.hata.common.reminder.data.local.model.HataReminder
 import com.oi.hata.common.reminder.data.local.model.ReminderMaster
 import com.oi.hata.common.reminder.ui.*
-import com.oi.hata.common.ui.*
+import com.oi.hata.common.ui.HataTaskReminderCustomButton
+import com.oi.hata.common.ui.HataTaskReminderOptionButton
+import com.oi.hata.common.ui.HataTaskSheetIconButton
+import com.oi.hata.common.ui.HataTimeButton
 import com.oi.hata.common.ui.components.HataDatePicker
 import com.oi.hata.common.ui.components.HataTimePicker
 import com.oi.hata.common.util.ReminderUtil
 import com.oi.hata.task.ui.CustomReminderContentUpdates
 import com.oi.hata.task.ui.ReminderContentUpdates
-import com.oi.hata.ui.HomeViewModel
-import com.oi.hata.ui.TaskViewModel
+import com.oi.hata.task.ui.TaskViewModel
+import apr
+import aug
 import dec
 import feb
 import jan
@@ -58,31 +52,19 @@ import may
 import nov
 import oct
 import sep
-import kotlin.math.pow
 
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
 fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
-                         homeViewModel: HomeViewModel,
                          taskViewModel: TaskViewModel,
+                         shape: Shape,
                          onCompleteCustomReminder: () -> Unit,
                          onCloseCustomReminder: () -> Unit,
-                         color: Color = MaterialTheme.colors.surface,
-                         shape: Shape
-){
-    //val reminderViewModel: ReminderViewModel = viewModel()
-    //val viewState by reminderViewModel.reminderState.collectAsState()
 
+                         ){
 
-
-        /*Scaffold(
-            topBar = { TopBar(reminderViewModel.reminder,onCompleteCustomReminder = onCompleteCustomReminder)},
-            content = { ReminderWhenOptions(reminderViewModel = reminderViewModel, color = color, shape = shape) },
-            bottomBar = {},
-            drawerContent = {}
-        )*/
         ReminderContent(
             reminderViewModel = reminderViewModel,
             reminder = reminderViewModel.reminder,
@@ -92,10 +74,6 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
             onCloseCustomReminder = onCloseCustomReminder,
             shape = shape)
 
-
-
-    //Log.d("CustomReminderPicker >>","******************" + reminderViewModel.reminderTxt)
-
 }
 
 @ExperimentalMaterialApi
@@ -103,12 +81,13 @@ fun CustomReminderPicker(reminderViewModel: ReminderViewModel,
 @Composable
 private fun ReminderContent(reminderViewModel: ReminderViewModel,
                             reminder:String,
+                            color: Color = MaterialTheme.colors.surface,
+                            shape: Shape,
                             onCompleteCustomReminder: () -> Unit,
                             onCloseCustomReminder: () -> Unit,
                             clearCustomReminderValues: () -> Unit,
                             setHataReminder: () -> Unit,
-                            color: Color = MaterialTheme.colors.surface,
-                            shape: Shape
+
 ){
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -134,9 +113,9 @@ private fun ReminderContent(reminderViewModel: ReminderViewModel,
                     setHataReminder = setHataReminder
                 )
             }
-                ReminderWhenOptions(reminderViewModel = reminderViewModel, color = color, shape = shape)
-            }
+            ReminderWhenOptions(reminderViewModel = reminderViewModel, color = color, shape = shape)
         }
+    }
 }
 
 @Composable
@@ -219,13 +198,13 @@ private fun ReminderWhenOptions(reminderViewModel: ReminderViewModel,
                 shape = shape
             ){
                 Column() {
-                    Header("Weeks",color= colorResource(id = R.color.header2))
+                    Header(stringResource(id = R.string.weeks),color= colorResource(id = R.color.header2))
                     Weeks(selectedWeeks = reminderViewModel.weeks,
                         onWeekSelect = reminderViewModel::onWeekSelected,
                         color = color,
                     )
 
-                    Header("WeekNum",color = colorResource(id = R.color.header2))
+                    Header(stringResource(id = R.string.weeknum),color = colorResource(id = R.color.header2))
                     WeekNums(selectedWeekNums = reminderViewModel.weeknums,
                         onWeekNumSelect = reminderViewModel::onWeekNumSelected,
                         color = color,
@@ -262,49 +241,12 @@ private fun When(reminder: String){
     }
 }
 
-/*@ExperimentalMaterialApi
-@Composable
-private fun Months(selectedMonths: List<String>,
-                   onMonthSelect: (String) -> Unit,
-                   color: Color,
-                   shape: Shape,
-                   modifier: Modifier = Modifier
-) {
-
-        Column() {
-            Header(
-                name = stringResource(id = R.string.months),
-                color = colorResource(id = R.color.header1)
-            )
-            Row(
-                modifier = modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                LayoutContainer(
-                    modifier = modifier
-                        .padding(8.dp)
-                    .background(
-                        color = colorResource(id = R.color.grey800)
-                    )
-                )
-                {
-                    for (month in CalMonths.values()) {
-                        Month(month.name, color, onMonthSelect, selectedMonths = selectedMonths)
-                    }
-                }
-            }
-        }
-
-}*/
-
 @ExperimentalMaterialApi
 @Composable
 private fun Months(selectedMonths: List<String>,
-                   onMonthSelect: (String) -> Unit,
                    color: Color,
                    shape: Shape,
+                   onMonthSelect: (String) -> Unit,
                    modifier: Modifier = Modifier
                     ) {
     Card(
@@ -333,7 +275,11 @@ private fun Months(selectedMonths: List<String>,
                 )
                 {
                     for (month in CalMonths.values()) {
-                        Month(month.name, color, onMonthSelect, selectedMonths = selectedMonths)
+                        Month(
+                            name = month.name,
+                            color = color,
+                            onMonthSelect = onMonthSelect,
+                            selectedMonths = selectedMonths)
                     }
                 }
             }
@@ -357,7 +303,7 @@ private fun Dates(selectedDates: List<Int>,
         shape = shape
     ) {
         Column() {
-            Header("Dates",color = colorResource(id = R.color.dates))
+            Header(stringResource(id = R.string.dates),color = colorResource(id = R.color.dates))
             Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 LayoutContainer(
                     modifier = modifier.padding(8.dp)
@@ -365,7 +311,7 @@ private fun Dates(selectedDates: List<Int>,
                 {
                     for (date in 1..31) {
                         Date(
-                            date,
+                            name = date,
                             color = color,
                             onDateSelect = onDateSelect,
                             selectedDates = selectedDates
@@ -380,8 +326,8 @@ private fun Dates(selectedDates: List<Int>,
 @ExperimentalMaterialApi
 @Composable
 private fun Weeks(selectedWeeks: List<String>,
-                  onWeekSelect: (String) -> Unit,
                   color: Color,
+                  onWeekSelect: (String) -> Unit,
                   modifier: Modifier = Modifier
 ){
 
@@ -393,7 +339,11 @@ private fun Weeks(selectedWeeks: List<String>,
 
         {
             for (week in ReminderUtil.WEEKNAMES.values()) {
-                Week(week.name, color = color,onWeekSelect,selectedWeeks)
+                Week(
+                    name = week.name,
+                    color = color,
+                    onWeekSelect = onWeekSelect,
+                    selectedWeeks = selectedWeeks)
             }
         }
     }
@@ -402,8 +352,8 @@ private fun Weeks(selectedWeeks: List<String>,
 @ExperimentalMaterialApi
 @Composable
 private fun WeekNums(selectedWeekNums: List<Int>,
-                     onWeekNumSelect: (Int) -> Unit,
                      color:Color,
+                     onWeekNumSelect: (Int) -> Unit,
                      modifier: Modifier = Modifier
 ){
     Row( modifier = modifier.fillMaxWidth(),horizontalArrangement = Arrangement.Center) {
@@ -411,7 +361,11 @@ private fun WeekNums(selectedWeekNums: List<Int>,
         LayoutContainer(modifier = modifier)
         {
             for (weeknum in 1..5) {
-                WeekNum(weeknum.toString(), color,onWeekNumSelect,selectedWeekNums = selectedWeekNums)
+                WeekNum(
+                    weekNum = weeknum.toString(),
+                    color = color,
+                    onWeekNumSelect = onWeekNumSelect,
+                    selectedWeekNums = selectedWeekNums)
             }
         }
     }
@@ -420,7 +374,13 @@ private fun WeekNums(selectedWeekNums: List<Int>,
 
 @ExperimentalMaterialApi
 @Composable
-private fun Month(name: String, color: Color, onMonthSelect: (String) -> Unit,selectedMonths: List<String>){
+private fun Month(
+    selectedMonths: List<String>,
+    name: String,
+    color: Color,
+    onMonthSelect: (String) -> Unit,
+
+){
 
     var mthSurfaceModifier: Modifier = Modifier
         .size(width = CELL_SIZE, height = CELL_SIZE)
@@ -444,9 +404,12 @@ private fun Month(name: String, color: Color, onMonthSelect: (String) -> Unit,se
 
 @ExperimentalMaterialApi
 @Composable
-private fun Date(name: Int, color: Color,
-                 onDateSelect: (Int) -> Unit,
-                 selectedDates: List<Int>
+private fun Date(
+    selectedDates: List<Int>,
+    name: Int,
+    color: Color,
+    onDateSelect: (Int) -> Unit,
+
 ){
 
     var dteSurfaceModifier: Modifier = Modifier.size(width = CELL_SIZE, height = CELL_SIZE)
@@ -468,7 +431,12 @@ private fun Date(name: Int, color: Color,
 
 @ExperimentalMaterialApi
 @Composable
-private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit, selectedWeeks: List<String>){
+private fun Week(
+    name: String,
+    color: Color,
+    selectedWeeks: List<String>,
+    onWeekSelect: (String) -> Unit,
+    ){
 
     var weekSurfaceModifier: Modifier = Modifier.size(width = WEEK_CELL_SIZE, height = WEEK_CELL_SIZE)
 
@@ -490,9 +458,9 @@ private fun Week(name: String, color: Color, onWeekSelect: (String) -> Unit, sel
 @ExperimentalMaterialApi
 @Composable
 private fun WeekNum(weekNum: String,
+                    selectedWeekNums: List<Int>,
                     color: Color,
                     onWeekNumSelect: (Int) -> Unit,
-                    selectedWeekNums: List<Int>
 )
 {
 
@@ -520,8 +488,10 @@ private fun WeekNum(weekNum: String,
 }
 
 @Composable
-private fun Header(name: String,modifier: Modifier = Modifier,color: Color){
-    Log.d("Header","Heeader >>>>>>>>>>>>>>>>>")
+private fun Header(name: String,
+                   color: Color,
+                   modifier: Modifier = Modifier,
+                   ){
     Row(modifier = modifier.padding(start = 16.dp,top=12.dp,bottom = 8.dp)) {
         Text(text = name,
             color = color,
@@ -548,7 +518,7 @@ private fun ReminderSurface(color: Color,
                     horizontalArrangement = Arrangement.SpaceBetween) {
 
                     Text(
-                        text = "When",
+                        text = stringResource(id = R.string.`when`),
                         style = MaterialTheme.typography.caption,
                         modifier = Modifier.padding(16.dp)
                     )
@@ -578,12 +548,13 @@ private fun ReminderSurface(color: Color,
 
 @ExperimentalMaterialApi
 @Composable
-private fun MonthSurface(color: Color,
-                         modifier: Modifier,
-                         name: String,
-                         onMonthSelect: (String) -> Unit,
-                         selectedMonths: List<String>,
-                         content: @Composable () -> Unit,
+private fun MonthSurface(
+                        selectedMonths: List<String>,
+                        color: Color,
+                        name: String,
+                        modifier: Modifier,
+                        onMonthSelect: (String) -> Unit,
+                        content: @Composable () -> Unit,
 ){
     val monthTransitionState = monthTransition(month = name,selectedMonths = selectedMonths)
 
@@ -612,71 +583,18 @@ private fun MonthSurface(color: Color,
     }
 }
 
-/*Surface(
-      modifier = modifier,
-      shape = RoundedCornerShape(MONTH_CORNER),
-      onClick = { onMonthSelect(name) },
-      color = monthTransitionState.colorAlpha
-  ) {
-
-      Column(
-          verticalArrangement = Arrangement.Center,
-          horizontalAlignment = Alignment.CenterHorizontally) {
-          content()
-      }
-  }*/
-
-/* Surface(
-        modifier = modifier.padding(4.dp),
-        shape = RoundedCornerShape(50.dp),
-        elevation = 1.dp,
-        color  = colorResource(id = R.color.header1),
-    ) {
-        Surface(
-            elevation = 1.dp,
-            shape = RoundedCornerShape(60.dp,60.dp,monthTransitionState.cornerRadius,60.dp),
-            onClick = { onMonthSelect(name) },
-        ) {
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                content()
-            }
-        }
-    }*/
-
 @ExperimentalMaterialApi
-
 @Composable
-private fun DateSurface( color: Color,
-                         date: Int,
-                         modifier: Modifier,
-                         onDateSelect: (Int) -> Unit,
-                         selectedDates: List<Int>,
-                         content: @Composable () -> Unit
+private fun DateSurface(
+                        selectedDates: List<Int>,
+                        color: Color,
+                        date: Int,
+                        modifier: Modifier,
+                        onDateSelect: (Int) -> Unit,
+                        content: @Composable () -> Unit
 ){
     val dateTransitionState = dateTransition(date = date,selectedDates = selectedDates)
 
-    /*Surface( modifier = modifier.padding(4.dp),
-        color  = colorResource(id = R.color.may),
-        shape= RoundedCornerShape(8.dp),
-        elevation = 1.dp) {
-
-        Surface(
-            onClick = { onDateSelect(date) },
-            color = color,
-            shape = RoundedCornerShape(4.dp, dateTransitionState.cornerRadius,4.dp,4.dp),
-            elevation = 1.dp
-        ) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                content()
-            }
-        }
-    }*/
 
     Box(contentAlignment = Alignment.Center){
         Surface( modifier = modifier.padding(4.dp),
@@ -703,35 +621,14 @@ private fun DateSurface( color: Color,
 
 }
 
-/*
-Surface(
-        modifier = modifier.padding(4.dp),
-        shape = RoundedCornerShape(50.dp),
-        elevation = 1.dp,
-        color  = colorResource(id = R.color.header1),
-    ) {
-        Surface(
-            elevation = 1.dp,
-            shape = RoundedCornerShape(60.dp,60.dp,monthTransitionState.cornerRadius,60.dp),
-            onClick = { onMonthSelect(name) },
-        ) {
-
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                content()
-            }
-        }
-    }
- */
-
 @ExperimentalMaterialApi
 @Composable
-private fun WeekSurface(color: Color,
-                        onWeekSelect: (String) -> Unit,
+private fun WeekSurface(
                         selectedWeeks: List<String>,
+                        color: Color,
                         name: String,
                         modifier: Modifier,
+                        onWeekSelect: (String) -> Unit,
                         content: @Composable () -> Unit
 ){
     val weekTransitionState = weekTransition(week = name,selectedWeeks = selectedWeeks)
@@ -763,12 +660,13 @@ private fun WeekSurface(color: Color,
 
 @ExperimentalMaterialApi
 @Composable
-private fun WeekNumSurface(color: Color,
-                           modifier: Modifier,
-                           weekNum: Int,
-                           onWeekNumSelect: (Int) -> Unit,
-                           selectedWeekNums: List<Int>,
-                           content: @Composable () -> Unit
+private fun WeekNumSurface(
+                            selectedWeekNums: List<Int>,
+                            color: Color,
+                            weekNum: Int,
+                            modifier: Modifier,
+                            onWeekNumSelect: (Int) -> Unit,
+                            content: @Composable () -> Unit
 ){
 
     val weekNumTransitionState = weekNumTransition(weekNum = weekNum,selectedWeekNums = selectedWeekNums)
@@ -879,13 +777,13 @@ fun ReminderOptions(
         }
 
         Row() {
-                AnimatedVisibility(visible = reminderContentUpdates.pickaDateSelected) {
-                    Dialog(onDismissRequest = {
-                        reminderContentUpdates.onPickaDateSelected(false)
-                    }) {
-                        HataDatePicker(reminderContentUpdates.onPickaDateSelected,reminderContentUpdates.onPickaDate)
-                    }
+            AnimatedVisibility(visible = reminderContentUpdates.pickaDateSelected) {
+                Dialog(onDismissRequest = {
+                    reminderContentUpdates.onPickaDateSelected(false)
+                }) {
+                    HataDatePicker(reminderContentUpdates.onPickaDateSelected,reminderContentUpdates.onPickaDate)
                 }
+            }
             AnimatedVisibility(visible = reminderContentUpdates.timeSelected) {
                 Dialog(onDismissRequest = {
                     reminderContentUpdates.onTimeSelected(false)
@@ -1043,59 +941,3 @@ private val monthColorMap = mapOf(
     CalMonths.Nov to nov,
     CalMonths.Dec to dec
 )
-
-enum class CalWeeks { Mon,Tue,Wed,Thu,Fri,Sat,Sun }
-
-
-fun Modifier.verticalGradientScrim(
-    color: Color,
-    @FloatRange(from = 0.0, to = 1.0) startYPercentage: Float = 0f,
-    @FloatRange(from = 0.0, to = 1.0) endYPercentage: Float = 1f,
-    decay: Float = 1.0f,
-    numStops: Int = 16
-): Modifier = composed {
-    val colors = remember(color, numStops) {
-        if (decay != 1f) {
-            // If we have a non-linear decay, we need to create the color gradient steps
-            // manually
-            val baseAlpha = color.alpha
-            List(numStops) { i ->
-                val x = i * 1f / (numStops - 1)
-                val opacity = x.pow(decay)
-                color.copy(alpha = baseAlpha * opacity)
-            }
-        } else {
-            // If we have a linear decay, we just create a simple list of start + end colors
-            listOf(color.copy(alpha = 0f), color)
-        }
-    }
-
-    var height by remember { mutableStateOf(0f) }
-    val brush = remember(color, numStops, startYPercentage, endYPercentage, height) {
-        Brush.verticalGradient(
-            colors = colors,
-            startY = height * startYPercentage,
-            endY = height * endYPercentage
-        )
-    }
-
-    drawBehind {
-        height = size.height
-        drawRect(brush = brush)
-    }
-}
-
-/*@Preview
-@Composable
-fun LayoutSampleTest(){
-   Surface(){
-       Column(modifier = Modifier.padding(bottom = 8.dp)) {
-           LayoutContainer(modifier = Modifier.padding(16.dp))
-           {
-               for (month in CalMonths.values().take(6)) {
-                   Month(month.name, Color.White)
-               }
-           }
-       }
-   }
-}*/

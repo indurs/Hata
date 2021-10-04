@@ -102,7 +102,6 @@ fun HataTaskReminderOptionButton(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 
 ){
-    println("HataTaskReminderOptionButton*****************************"+reminderOptSelected)
     Surface(
         shape = MaterialTheme.shapes.small,
         color = color,
@@ -151,7 +150,6 @@ fun HataTaskReminderCustomButton(
         shape = MaterialTheme.shapes.small,
         color = color,
         onClick = {
-            println("CUSTOM CLICK <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<*************************************************** >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
             onCustomReminderInit()
             onCustomReminderSelect()
         },

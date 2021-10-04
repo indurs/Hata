@@ -50,10 +50,12 @@ object ReminderUtil {
                         }
                     }
                 }
-                //println(WEEKNAMES.values()[weekDay].toString() +" "+WEEKNAMES.values()[weekDay].ordinal)
+
                 datesByDay[WEEKNAMES.values()[weekDay].ordinal]!!.add(i)
             }
         }
+
+
 
         return datesByDay
     }

@@ -26,39 +26,29 @@ interface GroupDao {
     @Delete
     suspend fun deleteGroup(group: Group)
 
-    @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM taskgroup WHERE group_id = :groupId ")
     fun getTaskGroup(groupId: Long): Flow<GroupTask>
 
-    @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM task where task.important_group_id = 2 and task_group_id != 2")
-    fun getImportantTasks(): List<Task>
+    suspend fun getImportantTasks(): List<Task>
 
-    @RewriteQueriesToDropUnusedColumns
-    @Transaction
-    @Query("SELECT Count(*) FROM task where task.important_group_id = 2 and task_group_id != 2")
-    fun getImportantTasksCount(): Flow<Int>
-
-    @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM taskgroup WHERE name = :groupName ")
-    fun getTaskGroup(groupName: String): GroupTask
+    suspend fun getTaskGroup(groupName: String): GroupTask
 
-    @RewriteQueriesToDropUnusedColumns
     @Transaction
     @Query("SELECT * FROM taskgroup ")
     fun getTaskGroups(): Flow<List<GroupTask>>
 
     @Transaction
-    suspend fun getTasksForGroup(groupName: String) = flow<GroupTask>{
+    suspend fun getTasksForGroup(groupName: String) = flow {
 
         var groupTask: GroupTask
         var tasks = mutableListOf<Task>()
 
         if(groupName == "Important"){
-            println("getTasksForGroup >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+groupName)
             tasks.clear()
             coroutineScope {
                 launch(Dispatchers.IO){

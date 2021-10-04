@@ -18,24 +18,12 @@
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Shapes
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.oi.hata.ui.theme.*
-import hataColors
 
-val crane_caption = Color.DarkGray
-val crane_divider_color = Color.LightGray
-private val hata_yello = Color(0xFFf8e767)
-private val hata_white = Color.White
-private val hata_yello_600 = Color(0xFFffffff)
-private val hata_yello_700 = Color(0xFF505252)
-private val hata_yello_800 = Color(0xFFfcfbf4)
-
-private val blue_800 = Color(0xFF166ed8)
-private val blue_700 = Color(0xFF1680ea)
 
 
 //Month colors
@@ -55,41 +43,9 @@ val dec = Color(0xFFe7f5ec)
 
 
 
-val hataColors = darkColors(
-    primary = hata_yello_700,
-    onPrimary = Color.Black,
-    secondary = hata_yello,
-    surface = hata_yello_800,
-    onSurface = hata_yello,
-    primaryVariant = hata_yello_600
-)
-
-val calendarColors = lightColors(
-    primary = green200,
-    primaryVariant = green100,
-    surface = Color.Black,
-
-    secondary = purple500,
-    onSurface = green50
-)
-val colors = darkColors(
-    primary = Green500,
-    surface = DarkBlue900,
-    onSurface = Color.White,
-    background = DarkBlue900,
-    onBackground = Color.White
-)
-
 @Composable
 fun HataTheme(content: @Composable () -> Unit) {
     MaterialTheme(colors = hatadarkcolors, typography = hataTypography, shapes = HataShapes) {
-        content()
-    }
-}
-
-@Composable
-fun HataCalendarTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colors = colors, typography = hataTypography, shapes = HataShapes) {
         content()
     }
 }

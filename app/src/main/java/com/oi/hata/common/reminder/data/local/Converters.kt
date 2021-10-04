@@ -10,12 +10,12 @@ class Converters {
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
     @TypeConverter
-    fun toOffSetDateTime(value:String?): OffsetDateTime?{
-        return value?.let { formatter.parse(value,OffsetDateTime::from) }
+    fun toOffSetDateTime(value: String?): OffsetDateTime? {
+        return value?.let { formatter.parse(value, OffsetDateTime::from) }
     }
 
     @TypeConverter
-    fun fromOffSetDateTime(value: OffsetDateTime?): String?{
+    fun fromOffSetDateTime(value: OffsetDateTime?): String? {
         return value?.format(formatter)
     }
 }

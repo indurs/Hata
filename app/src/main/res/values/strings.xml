@@ -6,6 +6,10 @@
 
     <!-- Home Screen -->
     <string name="add_task">Add Task</string>
+    <string name="task">Task</string>
+    <string name="diary">Diary</string>
+    <string name="travel">Travel</string>
+    <string name="tasks">Tasks</string>
 
     <!-- Drawer -->
     <string name="cd_open_navigation_drawer">Open navigation drawer</string>
@@ -14,6 +18,7 @@
     <string name="clear">Clear</string>
 
     <!-- Reminder Custom -->
+
     <string name="EVERY_DAY">Every day in</string>
     <string name="EVERY_MONTH">of every month</string>
     <string name="ST">st</string>
@@ -21,16 +26,27 @@
     <string name="RD">rd</string>
     <string name="TH">th</string>
     <string name="OF">of</string>
+    <string name="weeks">Weeks</string>
+    <string name="weeknum">WeekNum</string>
+    <string name="dates">Dates</string>
+    <string name="when">When</string>
 
     <!-- headers -->
     <string name="months">Months</string>
+
+    <!-- Group -->
+    <string name="group">Group</string>
+
     <!-- Task Sheet -->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="pickadate">Pick a Date</string>
     <string name="custom">Custom</string>
     <string name="everyday">EveryDay</string>
-
+    <string name="task_del_alert"> Task removed from Today\'s tasks </string>
+    <string name="task_del_alert_2"> Task is added to Today\'s tasks </string>
+    <string name="reminder_icon">Reminder</string>
+    <string name="back_icon">Back</string>
     <string name="reminder">Reminder</string>
     <string name="emptyreminder">Select options from Months,Dates,Weeks,WeekNums below</string>
 </resources>

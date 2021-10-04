@@ -8,18 +8,23 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.oi.hata.DevhataapiClient
+import com.oi.hata.common.reminder.data.HataReminderDatasource
 import com.oi.hata.common.reminder.data.local.HataDatabase
+import com.oi.hata.common.reminder.data.local.HataReminderRepository
+import com.oi.hata.common.reminder.data.local.IHataReminderRepository
 import com.oi.hata.common.reminder.data.local.dao.ReminderDao
-import com.oi.hata.data.HataDataSource
-import com.oi.hata.data.remote.HataRemoteDataSource
+import com.oi.hata.common.reminder.data.local.datasource.HataLocalReminderDatasource
+import com.oi.hata.task.data.HataTaskDatasource
+import com.oi.hata.task.data.HataTaskRepository
+import com.oi.hata.task.data.IHataTaskRepository
 import com.oi.hata.task.data.dao.GroupDao
 import com.oi.hata.task.data.dao.TaskDao
+import com.oi.hata.task.data.local.HataLocalTaskDatasource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -32,7 +37,7 @@ object ApplicationModule {
     @Provides
     fun provideGoogleSignInOptions(): GoogleSignInOptions {
         return GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken("606294249890-ieahov3odc6tn9gibprocn43psicgjp1.apps.googleusercontent.com")
+                .requestIdToken("")
                 .requestEmail()
                 .build()
     }
@@ -49,7 +54,7 @@ object ApplicationModule {
     @Singleton
     @Provides
     fun provideAwsCredentialProvider(@ApplicationContext context: Context) : CognitoCachingCredentialsProvider {
-        return CognitoCachingCredentialsProvider(context,"us-east-1:ee3cb5cc-127d-486b-94c8-f2e234082045",
+        return CognitoCachingCredentialsProvider(context,"",
             Regions.US_EAST_1)
     }
 
@@ -65,20 +70,32 @@ object ApplicationModule {
         return apiClient
     }
 
-    @JvmStatic
-    @Singleton
-    @Provides
-    fun providesHataRemoteDataSource(
-        cognitoCachingCredentialsProvider: CognitoCachingCredentialsProvider,
-        hataApiClient: DevhataapiClient
-    ): HataRemoteDataSource {
-        return com.oi.hata.data.remote.HataRemoteDataSource(cognitoCachingCredentialsProvider,hataApiClient)
-    }
 
     @Singleton
     @Provides
     fun provideHataDatabase(@ApplicationContext context: Context): HataDatabase {
         return HataDatabase.getInstance(context)
+    }
+
+
+    @Provides
+    fun provideHataLocalTaskDatasource(hataDatabase: HataDatabase,reminderDao: ReminderDao,taskDao: TaskDao,groupDao: GroupDao):  HataTaskDatasource{
+        return HataLocalTaskDatasource(hataDatabase,taskDao, groupDao, reminderDao)
+    }
+
+    @Provides
+    fun provideHataLocalReminderDatasource(hataDatabase: HataDatabase,reminderDao: ReminderDao,taskDao: TaskDao): HataReminderDatasource{
+        return HataLocalReminderDatasource(hataDatabase,reminderDao,taskDao)
+    }
+
+    @Provides
+    fun provideHataTaskRepository(hataLocalTaskDatasource: HataTaskDatasource,hataLocalReminderDatasource: HataReminderDatasource): IHataTaskRepository{
+        return HataTaskRepository(hataLocalTaskDatasource,hataLocalReminderDatasource)
+    }
+
+    @Provides
+    fun provideHataReminderRepository(hataLocalReminderDatasource: HataReminderDatasource): IHataReminderRepository{
+        return HataReminderRepository(hataLocalReminderDatasource)
     }
 
     @Provides

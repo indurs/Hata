@@ -1,22 +1,23 @@
 package com.oi.hata.ui
 
-import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.oi.hata.common.reminder.ui.ReminderViewModel
 import com.oi.hata.common.ui.reminder.CustomReminderPicker
 import com.oi.hata.task.ui.TaskGroups
-import java.util.*
+import com.oi.hata.task.ui.TaskViewModel
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
@@ -54,7 +55,6 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
             //val reminderViewModel =
                 //hiltViewModel<ReminderViewModel>(navController.getBackStackEntry(HataAppDestinations.HOME_ROUTE))
 
-            var calendar = GregorianCalendar()
 
             val reminderViewModel = hiltViewModel<ReminderViewModel>()
             val homeViewModel = hiltViewModel<HomeViewModel>()
@@ -86,11 +86,9 @@ fun HataNavGraph(startDestination: String = HataAppDestinations.HOME_ROUTE,
                 hiltViewModel<TaskViewModel>(navController.previousBackStackEntry!!)
             CustomReminderPicker(
                 reminderViewModel = reminderViewModel,
-                homeViewModel = homeViewModel,
                 taskViewModel = taskViewModel,
                 onCompleteCustomReminder = actions.onCompleteCustomReminder,
                 onCloseCustomReminder = actions.onCloseCustomReminder,
-                color = MaterialTheme.colors.surface,
                 shape = RoundedCornerShape(6.dp)
             )
         }

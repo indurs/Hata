@@ -6,7 +6,7 @@ import java.time.OffsetDateTime
 
 @Entity(tableName = "reminder_master")
 data class ReminderMaster(
-    @ColumnInfo(name = "reminder_id") @PrimaryKey (autoGenerate = true) var id: Long = 0,
+    @ColumnInfo(name = "reminder_id") @PrimaryKey(autoGenerate = true) var id: Long = 0,
     @ColumnInfo(name = "reminder_format") var reminderFormat: String?,
     @ColumnInfo(name = "alarm_screen_val") var alarmScreenVal: String,
     @ColumnInfo(name = "reminder_time") var reminderTime: String,
