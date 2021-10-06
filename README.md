@@ -7,6 +7,9 @@ Fully Jetpack Compose. Libraries used - Room,accompanist-navigation,animation,co
 
 To try this app you need to download [Android Studio Arctic Fox](https://developer.android.com/studio).
 
+# New to Jetpack compose
+There are plenty of resources to learn Jetpack Compose https://github.com/androiddevnotes/awesome-jetpack-compose-learning-resources
+
 # Home
 If there are any tasks,reminders,travel info,journal entries for today and tomorrow it will be displayed in the appropriate tab sections. Calendar tab displays the calendar view.
 
