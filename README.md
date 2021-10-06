@@ -1,4 +1,5 @@
 # Hata
-Hata is a personal app. It will have features like Tasks,Reminders,Travel,Journal etc. Currently it has Tasks&amp;Reminders under development.
-## Video
-![Alt Text](https://giphy.com/embed/e5bbU0Ox2PEI8ab31z)
+Hata is a personal app. It will have features like Tasks,Reminders,Travel,Journal etc. Currently Tasks&amp;Reminders are under development.
+Each feature will be an independent module
+
+![Hata](https://giphy.com/embed/LEpyhdvtx5ux8CFzos)
