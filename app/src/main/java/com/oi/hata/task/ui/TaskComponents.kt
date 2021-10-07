@@ -139,6 +139,7 @@ fun TaskList(
     taskscroll: ScrollState,
     color: Color,
     height: Dp,
+    displayToday: Boolean,
     groupscroll: Int,
     alertDismiss: Boolean,
     modifier: Modifier,
@@ -176,7 +177,8 @@ fun TaskList(
                         color = color,
                         tasks = groupTask.tasks,
                         onTaskSelected = onTaskSelected,
-                        taskListItemContentUpdates = taskListItemContentUpdates
+                        taskListItemContentUpdates = taskListItemContentUpdates,
+                        displayToday = displayToday
                     )
                 }
             }
@@ -229,6 +231,7 @@ private fun TaskRow(
     taskListItemContentUpdates: TaskListItemContentUpdates,
     task: Task,
     taskselected: Boolean,
+    displayToday: Boolean,
     color: Color,
     modifier: Modifier = Modifier,
     onTaskSelected: () -> Unit,
@@ -320,7 +323,8 @@ private fun TaskRow(
                         task = task,
                         taskListItemContentUpdates = taskListItemContentUpdates,
                         onTaskSelected = onTaskSelected,
-                        taskselected = taskselected
+                        taskselected = taskselected,
+                        displayToday = displayToday
                     )
                 }
             }
@@ -336,6 +340,7 @@ private
 fun TaskItem(
     taskListItemContentUpdates: TaskListItemContentUpdates,
     task: Task,
+    displayToday: Boolean,
     taskselected: Boolean = false,
     modifier: Modifier = Modifier,
     onTaskSelected: () -> Unit,
@@ -417,20 +422,6 @@ fun TaskItem(
             ) {
                 Text(
                     text = task.task,
-
-                    /*.pointerInput(Unit) {
-                        coroutineScope {
-                            launch {
-                                detectTapGestures(
-                                    onTap = {
-                                        taskContentUpdates.onTaskSelected()
-                                        taskContentUpdates.onTaskItemClick(task.id)
-                                    }
-                                )
-                            }
-                        }
-                    }*/
-
                     style = MaterialTheme.typography.body2,
                     color = taskItemCompleteTransitionState.colorAlpha
                 )
@@ -443,7 +434,7 @@ fun TaskItem(
                     modifier = Modifier
                         .align(Alignment.End)
                 ) {
-                    AnimatedVisibility(visible = taskListItemContentUpdates.displayToday || task.todaytask) {
+                    AnimatedVisibility(visible = displayToday || task.todaytask) {
                         Box(modifier = Modifier
                             .clip(CircleShape)
                             .clipToBounds()
@@ -725,6 +716,7 @@ fun DismissableTasks(
     taskListItemContentUpdates: TaskListItemContentUpdates,
     tasks: List<Task>?,
     taskselected: Boolean = false,
+    displayToday: Boolean,
     color: Color,
     modifier: Modifier,
     tasklistModifier: Modifier = Modifier,
@@ -747,9 +739,10 @@ fun DismissableTasks(
                         modifier = modifier,
                         color = color,
                         task = item,
+                        taskselected = taskselected,
+                        displayToday = displayToday,
                         taskListItemContentUpdates = taskListItemContentUpdates,
                         onTaskSelected = onTaskSelected,
-                        taskselected = taskselected
                     )
                 }
             }
@@ -809,7 +802,7 @@ fun TaskTopBar(
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
-fun ReminderBar(
+fun TaskSheet(
     customReminderContentUpdates: CustomReminderContentUpdates,
     reminderContentUpdates: ReminderContentUpdates,
     taskContentUpdates: TaskContentUpdates,
@@ -828,16 +821,6 @@ fun ReminderBar(
 
             AnimatedVisibility(
                 visible = reminderContentUpdates.reminderSelected && taskselected,
-                /*enter = slideInVertically(
-                    // Enters by sliding in from offset -fullHeight to 0.
-                    initialOffsetY = { fullHeight -> -fullHeight },
-                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
-                ),
-                exit = slideOutVertically(
-                    // Exits by sliding out from offset 0 to -fullHeight.
-                    targetOffsetY = { fullHeight -> -fullHeight },
-                    animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing)
-                )*/
             ) {
 
                 Row(
@@ -851,16 +834,6 @@ fun ReminderBar(
 
             AnimatedVisibility(
                 visible = taskselected
-                /*enter = slideInVertically(
-                    // Enters by sliding in from offset -fullHeight to 0.
-                    initialOffsetY = { fullHeight -> -fullHeight },
-                    animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
-                ),
-                exit = slideOutVertically(
-                    // Exits by sliding out from offset 0 to -fullHeight.
-                    targetOffsetY = { fullHeight -> -fullHeight },
-                    animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing)
-                )*/
 
             ) {
 
@@ -989,7 +962,6 @@ private fun TaskContent(
 
                     }
                     AnimatedVisibility(visible = taskContentUpdates.dueDateSelected) {
-                        //DateChip(text = dueDate)
                         Text(
                             text = taskContentUpdates.dueDate,
                             color = colorResource(id = R.color.pickdate),
@@ -1338,7 +1310,6 @@ data class TaskListItemContentUpdates(
     val taskImportant: List<Long>,
     val todaysTasks: List<Long>,
     val onTaskItemClick: (Long) -> Unit,
-    val displayToday: Boolean,
     val onDeleteTask: (Task) -> Unit,
     val onTaskSetForToday: (Task) -> Unit
 )

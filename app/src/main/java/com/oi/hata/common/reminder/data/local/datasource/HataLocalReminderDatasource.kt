@@ -33,7 +33,7 @@ class HataLocalReminderDatasource @Inject constructor(
     }
 
     override suspend fun updateTaskReminder(
-        hataReminder: HataReminder,
+        hataReminder: HataReminder?,
         task: Task
     ) {
         hataDatabase.withTransaction {

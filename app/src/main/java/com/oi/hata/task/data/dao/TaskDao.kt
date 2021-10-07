@@ -37,8 +37,9 @@ interface TaskDao {
 
     @Transaction
     @Query(""" SELECT task_id,task_reminder_id,task_group_id,task,tag,task_due_date,task_due_month,task_due_year,important_group_id,completed,today_task,task_create_date FROM 
-                        task WHERE today_task = :todayTask ORDER BY datetime(task_create_date) DESC """)
-    suspend fun getTodayTasks(todayTask: Boolean): List<Task>
+                        task WHERE today_task = :todayTask AND 
+                        task_due_date != :date ORDER BY datetime(task_create_date) DESC """)
+    suspend fun getTodayTasks(todayTask: Boolean,date:Int): List<Task>
 
     @Transaction
     @Query("SELECT Count(*) FROM task where task.important_group_id = 2 and task_group_id != 2")

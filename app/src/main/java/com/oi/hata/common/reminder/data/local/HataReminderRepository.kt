@@ -15,7 +15,7 @@ class HataReminderRepository @Inject constructor(
         hataReminderDatasource.insertTaskReminder(hataReminder,task)
     }
 
-    override suspend fun updateTaskReminder(hataReminder: HataReminder, task: Task) {
+    override suspend fun updateTaskReminder(hataReminder: HataReminder?, task: Task) {
         hataReminderDatasource.updateTaskReminder(hataReminder,task)
     }
 

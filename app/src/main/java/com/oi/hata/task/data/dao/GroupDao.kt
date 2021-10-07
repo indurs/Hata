@@ -32,7 +32,7 @@ interface GroupDao {
 
     @Transaction
     @Query("SELECT * FROM task where task.important_group_id = 2 and task_group_id != 2")
-    suspend fun getImportantTasks(): List<Task>
+    suspend fun getImportantTasks(): List<Task>?
 
     @Transaction
     @Query("SELECT * FROM taskgroup WHERE name = :groupName ")
@@ -45,11 +45,10 @@ interface GroupDao {
     @Transaction
     suspend fun getTasksForGroup(groupName: String) = flow {
 
-        var groupTask: GroupTask
+        var groupTask = GroupTask(Group(2,"Important"), emptyList())
         var tasks = mutableListOf<Task>()
 
         if(groupName == "Important"){
-            tasks.clear()
             coroutineScope {
                 launch(Dispatchers.IO){
                     var importantTasks = getImportantTasks()
@@ -59,18 +58,16 @@ interface GroupDao {
                             tasks.addAll(it)
                         }
                     }
-                }
 
-                getTaskGroup(groupName).tasks.let {
-                    if (it != null) {
-                        tasks.addAll(it)
+                    getTaskGroup(groupName).tasks.let {
+                        if (it != null) {
+                            tasks.addAll(it)
+                        }
                     }
+                    groupTask = GroupTask(Group(2,"Important"),tasks.sortedByDescending { task -> task.taskCreateDate })
                 }
-
-                groupTask = GroupTask(Group(2,"Important"),tasks.sortedByDescending { task -> task.taskCreateDate })
 
             }
-
 
         }else{
             var grpTask = getTaskGroup(groupName)
@@ -84,6 +81,4 @@ interface GroupDao {
 
         emit(groupTask)
     }
-
-
 }

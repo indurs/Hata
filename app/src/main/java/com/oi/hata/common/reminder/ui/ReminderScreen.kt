@@ -926,18 +926,3 @@ public val CALENDAR_DAY_COL_SIZE = 56.dp
 enum class CalMonths {
     Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
 }
-
-private val monthColorMap = mapOf(
-    CalMonths.Jan to jan,
-    CalMonths.Feb to feb,
-    CalMonths.Mar to mar,
-    CalMonths.Apr to apr,
-    CalMonths.May to may,
-    CalMonths.Jun to jun,
-    CalMonths.Jul to jul,
-    CalMonths.Aug to aug,
-    CalMonths.Sep to sep,
-    CalMonths.Oct to oct,
-    CalMonths.Nov to nov,
-    CalMonths.Dec to dec
-)

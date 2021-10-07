@@ -11,7 +11,7 @@ interface IHataReminderRepository {
     )
 
     suspend fun updateTaskReminder(
-        hataReminder: HataReminder,
+        hataReminder: HataReminder?,
         task: Task
     )
 }

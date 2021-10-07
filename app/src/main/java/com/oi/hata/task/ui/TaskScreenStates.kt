@@ -28,8 +28,7 @@ fun TaskContentUpdates(taskViewModel: TaskViewModel, groupId: Long = 0): TaskCon
 }
 
 fun TaskListItemContentUpdates(
-    taskViewModel: TaskViewModel,
-    displayToday: Boolean
+    taskViewModel: TaskViewModel
 ): TaskListItemContentUpdates {
     val taskListItemContentUpdates = TaskListItemContentUpdates(
         onTaskItemClick = { taskViewModel.onTaskItemClick(it) },
@@ -40,7 +39,7 @@ fun TaskListItemContentUpdates(
         onDeleteTask = { taskViewModel.onDeleteTask(it) },
         onTaskSetForToday = { taskViewModel.onTaskSetForToday(it) },
         todaysTasks = taskViewModel.todaysTasks,
-        displayToday = displayToday
+        //displayToday = displayToday
     )
 
     return taskListItemContentUpdates

@@ -85,8 +85,7 @@ fun HomeScreen(
 
 
     val taskContentUpdates = TaskContentUpdates(taskViewModel = taskViewModel)
-    val taskListItemContentUpdates =
-        TaskListItemContentUpdates(taskViewModel = taskViewModel, false)
+    val taskListItemContentUpdates = TaskListItemContentUpdates(taskViewModel = taskViewModel)
     val reminderContentUpdates =
         ReminderContentUpdates(reminderViewModel = reminderViewModel, taskViewModel = taskViewModel)
 
@@ -226,18 +225,20 @@ private fun HomeTabContent(
 
             when (currentTab) {
                 HataHomeScreens.Today -> {
-                    TodayScreen(
+                    TodayAndTomorrowScreen(
                         todayTasks = todayTasks,
                         taskselected = taskselected,
+                        displayToday = false,
                         taskListItemContentUpdates = taskListItemContentUpdates,
                         onTaskSelected = onTaskSelected,
                     )
                 }
                 HataHomeScreens.Tomorrow -> {
-                    TodayScreen(
+                    TodayAndTomorrowScreen(
                         todayTasks = tomorrowTasks,
                         taskselected = taskselected,
                         taskListItemContentUpdates = taskListItemContentUpdates,
+                        displayToday = true,
                         onTaskSelected = onTaskSelected,
                     )
                 }
@@ -316,7 +317,7 @@ private fun HomeTabContent(
             Modifier.align(Alignment.BottomCenter)
         )
         {
-            ReminderBar(
+            TaskSheet(
                 reminderContentUpdates = reminderContentUpdates,
                 customReminderContentUpdates = customReminderContentUpdates,
                 taskContentUpdates = taskContentUpdates,
@@ -390,11 +391,12 @@ private fun BottomBar(
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
 @Composable
-private fun TodayScreen(
+private fun TodayAndTomorrowScreen(
     taskListItemContentUpdates: TaskListItemContentUpdates,
     todayTasks: List<Task>?,
     taskselected: Boolean,
     onTaskSelected: () -> Unit,
+    displayToday: Boolean
     ) {
 
     Column() {
@@ -416,6 +418,7 @@ private fun TodayScreen(
             taskListItemContentUpdates = taskListItemContentUpdates,
             taskselected = taskselected,
             tasks = todayTasks,
+            displayToday = displayToday,
             color = color,
             modifier = Modifier,
             tasklistModifier = tasklistModifier,
@@ -541,6 +544,7 @@ private fun CalendarTasksSection(
             tasks = calendarDateTasks,
             taskselected = taskselected,
             color = color,
+            displayToday = false,
             modifier = Modifier,
             onTaskSelected = onTaskSelected,
         )
@@ -994,24 +998,6 @@ private fun CalendarColumnSurface(
                 }
             }
 
-            /*if (calendarColumn != null) {
-
-                if(calendarColumn.due > 0){
-                    Column(
-                        verticalArrangement = Arrangement.Bottom,
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(6.dp),
-                            color = colorResource(id = R.color.jul),
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-
-                        }
-                    }
-                }
-
-            }*/
         }
 
     }
@@ -1073,10 +1059,7 @@ private fun ChipContent(
 
         Text(
             text = text,
-            color = when {
-                selected -> colorResource(id = R.color.taskdivider)
-                else -> Color.White
-            },
+            color = Color.White,
             style = MaterialTheme.typography.body2,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
@@ -1090,7 +1073,7 @@ private fun TaskChip(
     taskselected: Boolean = false,
     onTaskTabSelected: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
+
     Surface(
         color = when {
             taskselected -> MaterialTheme.colors.surface.copy(alpha = 0.90f)

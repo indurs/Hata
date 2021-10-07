@@ -55,7 +55,7 @@ class HataLocalTaskDatasource @Inject constructor(
 
         var calendar = GregorianCalendar()
         if(calendar.get(Calendar.DAY_OF_MONTH) == date){
-            tasks.addAll(taskDao.getTodayTasks(true))
+            tasks.addAll(taskDao.getTodayTasks(true,date))
         }
 
         return tasks

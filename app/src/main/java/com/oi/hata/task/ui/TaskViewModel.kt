@@ -79,8 +79,10 @@ class TaskViewModel @Inject constructor(
             if (taskUIState.task != null) {
                 taskUIState.task!!.task = taskTxt
                 taskUIState.task!!.taskDueDate = dueDate
+                taskUIState.task!!.taskDueMonth = dueMonth
+                taskUIState.task!!.taskDueYear = dueYear
                 hataReminderRepository.updateTaskReminder(
-                    hataReminder = taskUIState.hataReminder!!, task = taskUIState.task!!
+                    hataReminder = taskUIState.hataReminder, task = taskUIState.task!!
                 )
             } else {
                 var impGroupid: Long
@@ -156,8 +158,11 @@ class TaskViewModel @Inject constructor(
             hataTaskRepository.getTask(taskId).flowOn(Dispatchers.IO).collect {
                 taskUIState = it
                 taskselected = true
-                reminderDueDate =
-                    buildDate(it.task!!.taskDueYear, it.task!!.taskDueMonth, it.task!!.taskDueDate)
+                if(it.task!!.taskDueYear!=0){
+                    reminderDueDate =
+                        buildDate(it.task!!.taskDueYear, it.task!!.taskDueMonth, it.task!!.taskDueDate)
+                }
+
                 dueDate = it.task!!.taskDueDate
                 dueMonth = it.task!!.taskDueMonth
                 dueYear = it.task!!.taskDueYear
@@ -384,6 +389,8 @@ class TaskViewModel @Inject constructor(
         if (taskUIState.hataReminder != null) {
             if (taskUIState.hataReminder!!.reminderOption == ReminderUtil.CUSTOM)
                 return taskUIState.hataReminder!!.alarmScreenVal
+            else if (taskUIState.hataReminder!!.reminderOption == ReminderUtil.PICKADATE)
+                return taskUIState.hataReminder!!.remoptPickDate
             else
                 return taskUIState.hataReminder!!.reminderOption
         }

@@ -525,8 +525,6 @@ interface ReminderDao {
             launch(Dispatchers.IO) {
                 var tasks =
                     getRemindersforMonthDate(ReminderUtil.WhenSelectType.MONTHDATE.name, month!!)
-                println("Tasks >>>>>>>>> getRemindersforMonthDate >>>>>>."+tasks.size)
-
 
                 tasks.forEach {
                     addTaskItem(it.reminder_date!!, monthReminders, it, taskIds)
@@ -549,9 +547,6 @@ interface ReminderDao {
             }*/
             launch(Dispatchers.IO) {
                 var tasks = getRemindersforDate(ReminderUtil.WhenSelectType.DATE.name)
-
-                println("Tasks >>>>>>>>> getRemindersforDate >>>>>>."+tasks.size)
-
 
                 tasks.forEach {
                     addTaskItem(it.reminder_date!!, monthReminders, it, taskIds)

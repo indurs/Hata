@@ -51,7 +51,7 @@ fun TaskGroups(
     )
 
     val taskListItemContentUpdates =
-        TaskListItemContentUpdates(taskViewModel = taskViewModel, displayToday = true)
+        TaskListItemContentUpdates(taskViewModel = taskViewModel)
 
     val reminderContentUpdates =
         ReminderContentUpdates(reminderViewModel = reminderViewModel, taskViewModel = taskViewModel)
@@ -100,6 +100,7 @@ fun TaskGroups(
                 todayTask = taskViewModel.todayTask,
                 taskListItemContentUpdates = taskListItemContentUpdates,
                 taskscroll = taskscroll,
+                displayToday = true,
                 onTaskSelected = { taskViewModel.onTaskSelected() },
                 alertDismiss = taskViewModel.alertDismiss,
                 onAlertDismiss = { taskViewModel.onAlertDismiss() }
@@ -118,7 +119,7 @@ fun TaskGroups(
             )*/
         )
         {
-            ReminderBar(
+            TaskSheet(
                 reminderContentUpdates = reminderContentUpdates,
                 customReminderContentUpdates = customReminderContentUpdates,
                 taskContentUpdates = taskContentUpdates,
@@ -145,6 +146,7 @@ private fun Tasks(
     taskscroll: ScrollState,
     groupscroll: Int,
     alertDismiss: Boolean,
+    displayToday: Boolean,
     onTaskSelected: () -> Unit,
     onAlertDismiss: () -> Unit
 ) {
@@ -169,6 +171,7 @@ private fun Tasks(
         height = height,
         groupscroll = groupscroll,
         taskscroll = taskscroll,
+        displayToday = displayToday,
         alertDismiss = alertDismiss,
         onAlertDismiss = onAlertDismiss
     )
