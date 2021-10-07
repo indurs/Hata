@@ -1,9 +1,9 @@
 # Hata
-Hata is a personal app which is under development. It will have features like Tasks,Reminders,Travel,Journal etc. Each feature will be in a seperate module and can be reused.
+Hata is a personal app which is under development. It will have features like Tasks, Reminders, Travel,Journal etc. Each feature will be in a seperate module and can be reused.
 Currently Tasks &amp; Reminders are under development.
 
 # Implementation
-Fully Jetpack Compose. Libraries used - Room, accompanist-navigation, animation,coroutines, Hilt
+Fully Jetpack Compose. Libraries used - Room, accompanist-navigation, animation, coroutines, Hilt
 
 To try this app you need to download [Android Studio Arctic Fox](https://developer.android.com/studio).
 
