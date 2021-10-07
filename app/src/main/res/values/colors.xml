@@ -1,61 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="grey800">#ff4d4c59</color>
-    <color name="sample">#1693fe</color>
-    <color name="task">#3ba2ff</color>
-    <color name="taskitem">#eff1f5</color>
-    <color name="bottombar">#2a2d39</color>
-    <color name="lightblue">#484b56</color>
-    <color name="today">#f5bcd0</color>
-    <color name="tomorow">#85cf30</color>
-    <color name="pickdate">#e6da56</color>
-    <color name="custom">#8f7bea</color>
-    <color name="everyday">#ff60ced4</color>
-    <color name="time">#a9e2f7</color>
-    <color name="customscreen">#010a23</color>
-    <color name="custommonth">#1d1c1f</color>
-    <color name="customselect">#edcb15</color>
-    <color name="remindertxt">#d19700</color>
-    <color name="header">#0632d2</color>
-    <color name="months">#fcb8a9</color>
-    <color name="header1">#02d5ee</color>
-    <color name="header2">#ff49b6ff</color>
-    <color name="header3">#ee9002</color>
-    <color  name = "customremsurface">#393945</color>
 
-    <color name="headerBackground">#1b1c20</color>
-    <color name="datebackground">#3b3d41</color>
-    <color name="numbercolor">#1b75dc</color>
-    <color name="taskdivider">#ff0280ee</color>
-    <color name = "task_section">#ff262628</color>
-    <color name = "task_section1">#ff49474a</color>
-    <color name = "calendar_bg">#f1f2f5</color>
-    <color name = "calendar_col">#363639</color>
-    <color name = "cal_month_sel">#d3d7e1</color>
-    <color name="important">#3466c2</color>
-
-    <color name="cal_mon_year_sec">#3d4550</color>
-    <color name="cal_task_hdr">#008263</color>
-    <color name="cal_mon_year">#b9ddff</color>
-    <color name = "timepicker">#191c20</color>
-
-    <color name="weekname">#076ff9</color>
-    <color name="due">#f28769</color>
-    <color name="cal_col">#ff9e22</color>
-
-    <color name="dates">#6dbcb9</color>
-    <color name="mths">#363a43</color>
     <!-- Months -->
     <color name="jan">#FF0841ec</color>
     <color name="feb">#FFfe8cef</color>
     <color name="mar">#FF7fff82</color>
+    //Also used in TaskItem,TaskHeader,CalendarColumnItem
     <color name="apr">#FFe4f81b</color>
     <color name="may">#FFff96b1</color>
     <color name="jun">#FF4efcea</color>
@@ -64,8 +16,49 @@
     <color name="sep">#FFf6fc4e</color>
     <color name="oct">#ffe2c2fd</color>
     <color name="nov">#fffac19c</color>
+    //Also used in TaskItem
     <color name="dec">#ffe7f5ec</color>
+
+    //When
+    <color name="customselect">#edcb15</color>
+    <color name="dates">#6dbcb9</color>
+    <color name="mths">#363a43</color>
+
+    //When,AddTaskHeader
+    <color name="header2">#ff49b6ff</color>
+
+    //Reminder
+    <color name="everyday">#ff60ced4</color>
+    <color name="today">#f5bcd0</color>
+    <color name="tomorow">#85cf30</color>
+    <color name="custom">#8f7bea</color>
+
+    // Reminder,TaskContent
+    <color name="pickdate">#e6da56</color>
+
+    //DatePicker, TaskList, TodayAlert,AddTaskHeader,AddGroupButton,TaskTopBar,ReminderBar,TaskContent
+    <color name="bottombar">#2a2d39</color>
+
+    //Timepicker
+    <color name="numbercolor">#1b75dc</color>
+    <color name="datebackground">#3b3d41</color>
+    <color name="timepicker">#191c20</color>
+
+    //Task Group
+    <color name="cal_col">#ff9e22</color>
+
+    //HataCalendarSectionContent
+    <color name="cal_mon_year_sec">#3d4550</color>
+    //CalendarMonthYearSection
+    <color name="cal_mon_year">#b9ddff</color>
+
+    //CalendarColumnSurface
+    <color name="header1">#02d5ee</color>
+
+    //ChipContent,TaskChip
+    <color name="taskdivider">#ff0280ee</color>
 
     <color name="immersive_sys_ui">#33000000</color>
     <color name="nav_bar">@color/immersive_sys_ui</color>
+
 </resources>

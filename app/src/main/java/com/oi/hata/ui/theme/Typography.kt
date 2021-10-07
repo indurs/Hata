@@ -34,19 +34,9 @@ private val Montserrat = FontFamily(
     Font(R.font.montserrat_semibold, FontWeight.SemiBold)
 )
 
-private val RobotoCondensed = FontFamily(
-    Font(R.font.robotocondensed_regular),
-    Font(R.font.robotocondensed_light, FontWeight.Light),
-    Font(R.font.robotocondensed_bold, FontWeight.Bold)
-)
 
 private val hatafontFamily = FontFamily(fonts = listOf(light, regular, medium, semibold))
 
-val captionTextStyle = TextStyle(
-    fontFamily = RobotoCondensed,
-    fontWeight = FontWeight.W400,
-    fontSize = 16.sp
-)
 
 val hataTypography = Typography(
     h1 = TextStyle(
